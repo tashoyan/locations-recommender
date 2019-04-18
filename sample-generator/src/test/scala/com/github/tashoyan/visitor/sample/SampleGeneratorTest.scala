@@ -38,6 +38,11 @@ class SampleGeneratorTest extends FunSuite with SparkTestHarness {
       )
     sample.show(false)
     sample.select(min("timestamp"), max("timestamp")).show(false)
+    sample
+      .repartition(1)
+      .write
+      .option("header", "true")
+      .csv(s"${sys.props("java.io.tmpdir")}/raw_sample")
   }
 
 }
