@@ -11,6 +11,7 @@
 
     <modules>
         <module>test-resources</module>
+        <module>sample-generator</module>
         <module>recommender</module>
     </modules>
 
@@ -38,6 +39,7 @@
         <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
 
         <spark.version>2.4.0</spark.version>
+        <paranamer.version>2.8</paranamer.version>
         <scalatest.version>3.0.5</scalatest.version>
         <scalactic.version>3.0.5</scalactic.version>
     </properties>
@@ -56,8 +58,19 @@
                 <version>${spark.version}</version>
             </dependency>
             <dependency>
+                <!-- Specify paranamer to avoid java.lang.ArrayIndexOutOfBoundsException: 10582-->
+                <groupId>com.thoughtworks.paranamer</groupId>
+                <artifactId>paranamer</artifactId>
+                <version>${paranamer.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
+                <version>${compiler.scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-reflect</artifactId>
                 <version>${compiler.scala.version}</version>
             </dependency>
             <dependency>
