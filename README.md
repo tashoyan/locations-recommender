@@ -1,2 +1,2 @@
-# locations-recommender
-Recommender system - where to go, what places to visit
+# welcome-visitor
+Recommender system for visitors - come to a place where you are welcome.
