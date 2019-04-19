@@ -14,37 +14,6 @@ import org.scalatest.FunSuite
 //TODO Move from tests to main, add launcher
 class SampleGeneratorTest extends FunSuite with SparkTestHarness {
 
-  ignore("generate visits raw sample") {
-    val inputFile = this.getClass
-      .getResource("sample264")
-      .toString
-    val input = spark.read.parquet(inputFile)
-    println(s"Input count: ${input.count()}")
-
-    val generateTimestampUdf = udf { factor: Double =>
-      val offsetHours: Long = (visitsIntervalHours * factor).toLong
-      val time = visitsFromTimestamp.plus(offsetHours, ChronoUnit.HOURS)
-      new Timestamp(time.toInstant.toEpochMilli)
-    }
-    val sample = input
-      .withColumn("random", rand(0L))
-      .withColumn("timestamp", generateTimestampUdf(col("random")))
-      .select(
-        col("userId") as "personId",
-        col("timestamp")
-      )
-    println("Visits raw sample:")
-    sample.show(false)
-    println("Visits min/max timestamp:")
-    sample.select(min("timestamp"), max("timestamp")).show(false)
-    sample
-      .repartition(1)
-      .write
-      .option("header", "true")
-      .mode(SaveMode.Overwrite)
-      .csv(s"${sys.props("java.io.tmpdir")}/visits_raw_sample")
-  }
-
   test("generate location visits sample") {
     val spark0 = spark
     import spark0.implicits._
