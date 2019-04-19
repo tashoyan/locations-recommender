@@ -40,6 +40,7 @@
 
         <spark.version>2.4.0</spark.version>
         <paranamer.version>2.8</paranamer.version>
+        <scopt.version>3.7.1</scopt.version>
         <scalatest.version>3.0.5</scalatest.version>
         <scalactic.version>3.0.5</scalactic.version>
     </properties>
@@ -58,6 +59,11 @@
                 <version>${spark.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-catalyst_${compiler.scala.compat.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+            <dependency>
                 <!-- Specify paranamer to avoid java.lang.ArrayIndexOutOfBoundsException: 10582-->
                 <groupId>com.thoughtworks.paranamer</groupId>
                 <artifactId>paranamer</artifactId>
@@ -72,6 +78,11 @@
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-reflect</artifactId>
                 <version>${compiler.scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.scopt</groupId>
+                <artifactId>scopt_${compiler.scala.compat.version}</artifactId>
+                <version>${scopt.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatest</groupId>

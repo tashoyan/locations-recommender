@@ -14,7 +14,7 @@ import org.scalatest.FunSuite
 //TODO Move from tests to main, add launcher
 class SampleGeneratorTest extends FunSuite with SparkTestHarness {
 
-  test("generate location visits sample") {
+  ignore("generate location visits sample") {
     val spark0 = spark
     import spark0.implicits._
 
