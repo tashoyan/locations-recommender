@@ -5,18 +5,18 @@ import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneOffset}
 
 import com.github.tashoyan.visitor.test.SparkTestHarness
+import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.functions._
 import org.scalatest.FunSuite
 
 class SampleGeneratorTest extends FunSuite with SparkTestHarness {
 
-  test("generate sample") {
+  test("generate visits raw sample") {
     val input = this.getClass
       .getResource("sample264")
       .toString
     val inputData = spark.read.parquet(input)
-    println(inputData.count())
-    inputData.show(false)
+    println(s"Input data count: ${inputData.count()}")
 
     val from = LocalDate.of(2018, 1, 1)
       .atStartOfDay()
@@ -36,13 +36,16 @@ class SampleGeneratorTest extends FunSuite with SparkTestHarness {
         col("artistId") as "locationId",
         col("timestamp")
       )
+    println("Visits raw sample:")
     sample.show(false)
+    println("Visits min/max timestamp:")
     sample.select(min("timestamp"), max("timestamp")).show(false)
     sample
       .repartition(1)
       .write
       .option("header", "true")
-      .csv(s"${sys.props("java.io.tmpdir")}/raw_sample")
+      .mode(SaveMode.Overwrite)
+      .csv(s"${sys.props("java.io.tmpdir")}/visits_raw_sample")
   }
 
 }
