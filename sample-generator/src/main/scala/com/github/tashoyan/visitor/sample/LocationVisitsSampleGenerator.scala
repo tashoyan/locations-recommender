@@ -28,7 +28,7 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
     val locationVisitsPersons = generatePersons
     val locationVisitsTimestamps = generateTimestamps(locationVisitsPersons)
     val locationVisitsGeo = generateGeoLocations(locationVisitsTimestamps)
-    val locationVisits = locationVisitsGeo
+    val locationVisits = locationVisitsGeo.cache()
 
     printLocationVisits(locationVisits)
     writeLocationVisits(locationVisits)

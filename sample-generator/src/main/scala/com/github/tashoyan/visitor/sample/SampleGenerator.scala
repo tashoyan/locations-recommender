@@ -10,6 +10,13 @@ object SampleGenerator extends SampleGeneratorArgParser {
     Region(id = 2L, name = "Kazan", minLatitude = 55.744243, maxLatitude = 55.835127, minLongitude = 49.024581, maxLongitude = 49.231314)
   )
 
+  private val placeCategories: Seq[String] = Seq(
+    "theatre",
+    "museum",
+    "shop",
+    "gym"
+  )
+
   def main(args: Array[String]): Unit = {
     parser.parse(args, SampleGeneratorConfig()) match {
       case Some(config) => doMain(config)
@@ -22,6 +29,8 @@ object SampleGenerator extends SampleGeneratorArgParser {
       .getOrCreate()
 
     new LocationVisitsSampleGenerator(regions)
+      .generate()
+    new PlacesSampleGenerator(regions, placeCategories)
       .generate()
 
     spark.stop()
