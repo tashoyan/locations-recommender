@@ -11,6 +11,7 @@ case class Location(latitude: Double, longitude: Double) {
   }
 }
 
+//TODO FastMath from commons-math3
 object Location {
   val MIN_LATITUDE: Double = -90.0
   val MAX_LATITUDE: Double = 90.0
@@ -32,19 +33,6 @@ object Location {
   def haversine(theta: Double): Double = {
     val s = math.sin(theta / 2)
     s * s
-  }
-
-  def calculateDistanceInMeter(location1: Location, location2: Location): Double = {
-    val latDistance = Math.toRadians(location1.latitude - location2.latitude)
-    val lngDistance = Math.toRadians(location1.longitude - location2.longitude)
-    val sinLat = Math.sin(latDistance / 2)
-    val sinLng = Math.sin(lngDistance / 2)
-    val a = sinLat * sinLat +
-      (Math.cos(Math.toRadians(location1.latitude)) *
-        Math.cos(Math.toRadians(location2.latitude)) *
-        sinLng * sinLng)
-    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    earthRadiusMeters * c
   }
 
 }
