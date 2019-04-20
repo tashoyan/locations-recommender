@@ -14,8 +14,10 @@ class PlacesSampleGenerator(
     val placesGeo = generatePlacesGeo
     val placesCategories = generatePlacesCategories(placesGeo)
     val placesNames = generatePlacesNames(placesCategories)
+    val places = placesNames
+      .repartition(col("region_id"), col("category"))
+      .cache()
 
-    val places = placesNames.cache()
     printPlaces(places)
     writePlaces(places)
   }
@@ -96,7 +98,7 @@ class PlacesSampleGenerator(
   private def writePlaces(places: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
     places
       .write
-      .partitionBy("region_id")
+      .partitionBy("region_id", "category")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/places_sample")
   }

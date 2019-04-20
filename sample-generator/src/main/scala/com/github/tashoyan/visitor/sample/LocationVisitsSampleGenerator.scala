@@ -14,9 +14,6 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
 
   //TODO Configurable sample parameters
 
-  private val personCount: Int = 10000
-  private val maxVisitCountsPerPerson: Int = 10
-
   private val sampleYear0 = 2018
   private val sampleYear: Year = Year.of(sampleYear0)
   private val visitsFromTimestamp: OffsetDateTime = sampleYear.atDay(1)
@@ -24,11 +21,17 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
     .atOffset(ZoneOffset.UTC)
   private val visitsIntervalHours: Long = TimeUnit.DAYS.toHours(sampleYear.length().toLong)
 
+  private val personCount: Int = 1000
+  /* Goes somewhere every day over the year */
+  private val maxVisitCountsPerPerson: Int = sampleYear.length()
+
   def generate()(implicit spark: SparkSession): Unit = {
     val locationVisitsPersons = generatePersons
     val locationVisitsTimestamps = generateTimestamps(locationVisitsPersons)
     val locationVisitsGeo = generateGeoLocations(locationVisitsTimestamps)
-    val locationVisits = locationVisitsGeo.cache()
+    val locationVisits = locationVisitsGeo
+      .repartition(col("region_id"), col("year_month"))
+      .cache()
 
     printLocationVisits(locationVisits)
     writeLocationVisits(locationVisits)
