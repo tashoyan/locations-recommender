@@ -127,7 +127,7 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
   private def writeLocationVisits(locationVisits: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
     locationVisits
       .write
-      .partitionBy("year_month", "region_id")
+      .partitionBy("region_id", "year_month")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/location_visits_sample")
   }

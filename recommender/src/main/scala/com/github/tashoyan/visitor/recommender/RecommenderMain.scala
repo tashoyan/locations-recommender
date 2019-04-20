@@ -23,6 +23,7 @@ object RecommenderMain extends RecommenderArgParser {
 
     val visitsGraph = new VisitsGraph
     val placeVisits = visitsGraph.calcPlaceVisits(locationVisits, places)
+      .repartition(col("region_id"), col("year_month"))
       .cache()
     printPlaceVisits(placeVisits)
     writePlaceVisits(placeVisits)
@@ -58,7 +59,7 @@ object RecommenderMain extends RecommenderArgParser {
   private def writePlaceVisits(placeVisits: DataFrame)(implicit config: RecommenderConfig): Unit = {
     placeVisits
       .write
-      .partitionBy("year_month", "region_id")
+      .partitionBy("region_id", "year_month")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/place_visits")
   }
