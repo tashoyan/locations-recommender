@@ -23,9 +23,8 @@ class VisitsGraph {
     locationVisits
       .withColumnRenamed("latitude", "location_latitude")
       .withColumnRenamed("longitude", "location_longitude")
-      .withColumnRenamed("region_id", "location_region_id")
-      .join(
-        places,
+      .join(places, "region_id")
+      .where(
         placeIsVisitedUdf(
           col("location_latitude"),
           col("location_longitude"),

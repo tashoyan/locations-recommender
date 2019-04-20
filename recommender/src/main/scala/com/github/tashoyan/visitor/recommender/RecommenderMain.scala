@@ -1,7 +1,7 @@
 package com.github.tashoyan.visitor.recommender
 
 import org.apache.spark.sql.functions.{col, max, min}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 object RecommenderMain extends RecommenderArgParser {
 
@@ -12,7 +12,7 @@ object RecommenderMain extends RecommenderArgParser {
     }
   }
 
-  private def doMain(config: RecommenderConfig): Unit = {
+  private def doMain(implicit config: RecommenderConfig): Unit = {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
 
@@ -23,10 +23,9 @@ object RecommenderMain extends RecommenderArgParser {
 
     val visitsGraph = new VisitsGraph
     val placeVisits = visitsGraph.calcPlaceVisits(locationVisits, places)
+      .cache()
     printPlaceVisits(placeVisits)
-    placeVisits.write
-      .partitionBy("region_id", "year_month")
-      .parquet(s"${config.samplesDir}/place_visits")
+    writePlaceVisits(placeVisits)
   }
 
   private def printPlaceVisits(placeVisits: DataFrame): Unit = {
@@ -54,6 +53,14 @@ object RecommenderMain extends RecommenderArgParser {
       .show(false)
     println("Place visits sample:")
     placeVisits.show(false)
+  }
+
+  private def writePlaceVisits(placeVisits: DataFrame)(implicit config: RecommenderConfig): Unit = {
+    placeVisits
+      .write
+      .partitionBy("year_month", "region_id")
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/place_visits")
   }
 
 }
