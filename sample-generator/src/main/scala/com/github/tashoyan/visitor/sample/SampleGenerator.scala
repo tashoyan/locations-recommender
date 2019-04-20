@@ -25,8 +25,10 @@ object SampleGenerator extends SampleGeneratorArgParser {
     "university",
     "school",
     "kindergarten",
-    "nuclear_power_plant",
+    "police_station",
     "military_base",
+    "cemetery",
+    "nuclear_power_plant",
     "fallout_shelter"
   )
 
