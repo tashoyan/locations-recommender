@@ -12,9 +12,22 @@ object SampleGenerator extends SampleGeneratorArgParser {
 
   private val placeCategories: Seq[String] = Seq(
     "theatre",
+    "cinema",
     "museum",
     "shop",
-    "gym"
+    "gym",
+    "stadium",
+    "park",
+    "cafe",
+    "coworking",
+    "office",
+    "gas_station",
+    "university",
+    "school",
+    "kindergarten",
+    "nuclear_power_plant",
+    "military_base",
+    "fallout_shelter"
   )
 
   def main(args: Array[String]): Unit = {
