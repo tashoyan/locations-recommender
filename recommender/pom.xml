@@ -20,6 +20,11 @@
             <artifactId>scalatest_${compiler.scala.compat.version}</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.scalactic</groupId>
+            <artifactId>scalactic_${compiler.scala.compat.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
