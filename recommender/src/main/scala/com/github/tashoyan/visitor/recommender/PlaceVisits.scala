@@ -1,10 +1,11 @@
 package com.github.tashoyan.visitor.recommender
 
-import com.github.tashoyan.visitor.recommender.VisitsGraph._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 
-class VisitsGraph {
+object PlaceVisits {
+
+  val distanceAccuracyMeters: Double = 100
 
   def calcPlaceVisits(locationVisits: DataFrame, places: DataFrame): DataFrame = {
     val placeIsVisitedUdf = udf { (
@@ -18,7 +19,7 @@ class VisitsGraph {
       (location distanceMeters place) <= distanceAccuracyMeters
     }
 
-    locationVisits
+    val placeVisits = locationVisits
       .withColumnRenamed("latitude", "location_latitude")
       .withColumnRenamed("longitude", "location_longitude")
       .join(places, "region_id")
@@ -37,10 +38,8 @@ class VisitsGraph {
         col("region_id"),
         col("id") as "place_id"
       )
+    placeVisits
+      .repartition(col("region_id"), col("year_month"))
   }
 
-}
-
-object VisitsGraph {
-  val distanceAccuracyMeters: Double = 100
 }
