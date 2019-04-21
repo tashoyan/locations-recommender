@@ -11,15 +11,26 @@ class PlacesSampleGenerator(
   val placeCountPerRegion = 100
 
   def generate()(implicit spark: SparkSession): Unit = {
+    val categories = generateCategories
+
     val placesGeo = generatePlacesGeo
-    val placesCategories = generatePlacesCategories(placesGeo)
+    val placesCategories = generatePlacesCategories(placesGeo, categories)
     val placesNames = generatePlacesNames(placesCategories)
     val places = placesNames
-      .repartition(col("region_id"), col("category"))
+      .repartition(col("region_id"), col("category_id"))
       .cache()
 
     printPlaces(places)
     writePlaces(places)
+    writeCategories(categories)
+  }
+
+  private def generateCategories(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
+    placeCategories
+      .zipWithIndex
+      .toDF("category", "category_id")
   }
 
   private def generatePlacesGeo(implicit spark: SparkSession): DataFrame = {
@@ -55,15 +66,15 @@ class PlacesSampleGenerator(
     )
   }
 
-  private def generatePlacesCategories(input: DataFrame): DataFrame = {
-    val categoryUdf = udf { factor: Double =>
-      val categoryIdx = (factor * placeCategories.length).toInt
-      placeCategories(categoryIdx)
+  private def generatePlacesCategories(input: DataFrame, categories: DataFrame): DataFrame = {
+    val categoryIdUdf = udf { factor: Double =>
+      (factor * placeCategories.length).toLong
     }
     input
       .withColumn("factor", rand(0L))
-      .withColumn("category", categoryUdf(col("factor")))
+      .withColumn("category_id", categoryIdUdf(col("factor")))
       .drop("factor")
+      .join(broadcast(categories), "category_id")
   }
 
   private def generatePlacesNames(input: DataFrame): DataFrame = {
@@ -101,6 +112,13 @@ class PlacesSampleGenerator(
       .partitionBy("region_id", "category")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/places_sample")
+  }
+
+  private def writeCategories(categories: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
+    categories
+      .write
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/categories_sample")
   }
 
 }
