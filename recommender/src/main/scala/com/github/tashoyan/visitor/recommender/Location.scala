@@ -27,7 +27,7 @@ object Location {
     val lon2 = toRadians(location2.longitude)
     val hav = haversine(lat2 - lat1) +
       cos(lat1) * cos(lat2) * haversine(lon2 - lon1)
-    earthRadiusMeters * 2 * sqrt(hav)
+    earthRadiusMeters * 2 * asin(sqrt(hav))
   }
 
   def haversine(theta: Double): Double = {
