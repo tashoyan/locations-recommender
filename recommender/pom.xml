@@ -34,6 +34,10 @@
             <artifactId>scopt_${compiler.scala.compat.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${compiler.scala.compat.version}</artifactId>
             <scope>test</scope>
