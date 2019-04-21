@@ -13,10 +13,11 @@ class PlacesSampleGenerator(
   def generate()(implicit spark: SparkSession): Unit = {
     val categories = generateCategories
 
-    val placesGeo = generatePlacesGeo
-    val placesCategories = generatePlacesCategories(placesGeo, categories)
-    val placesNames = generatePlacesNames(placesCategories)
+    val placesGeo = withGeo
+    val placesCategories = withCategories(placesGeo, categories)
+    val placesNames = withNames(placesCategories)
     val places = placesNames
+      .drop("category")
       .repartition(col("region_id"), col("category_id"))
       .cache()
 
@@ -33,7 +34,7 @@ class PlacesSampleGenerator(
       .toDF("category", "category_id")
   }
 
-  private def generatePlacesGeo(implicit spark: SparkSession): DataFrame = {
+  private def withGeo(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
     val regionsDs: Dataset[Region] = regions.toDS()
@@ -66,7 +67,7 @@ class PlacesSampleGenerator(
     )
   }
 
-  private def generatePlacesCategories(input: DataFrame, categories: DataFrame): DataFrame = {
+  private def withCategories(input: DataFrame, categories: DataFrame): DataFrame = {
     val categoryIdUdf = udf { factor: Double =>
       (factor * placeCategories.length).toLong
     }
@@ -77,7 +78,7 @@ class PlacesSampleGenerator(
       .join(broadcast(categories), "category_id")
   }
 
-  private def generatePlacesNames(input: DataFrame): DataFrame = {
+  private def withNames(input: DataFrame): DataFrame = {
     input
       .withColumn(
         "name",
@@ -99,7 +100,7 @@ class PlacesSampleGenerator(
       .show(false)
     println("Place counts by categories:")
     places
-      .groupBy("category")
+      .groupBy("category_id")
       .count()
       .show(false)
     println("Places sample:")
@@ -109,7 +110,7 @@ class PlacesSampleGenerator(
   private def writePlaces(places: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
     places
       .write
-      .partitionBy("region_id", "category")
+      .partitionBy("region_id", "category_id")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/places_sample")
   }

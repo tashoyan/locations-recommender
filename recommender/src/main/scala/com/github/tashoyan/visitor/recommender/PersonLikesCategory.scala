@@ -11,7 +11,7 @@ object PersonLikesCategory {
 
   def calcPersonLikesCategoryEdges(placeVisits: DataFrame): DataFrame = {
     val personVisitCategoryCounts = placeVisits
-      .groupBy("person_id", "category")
+      .groupBy("person_id", "category_id")
       .agg(
         count("*") as "visit_count",
         first("region_id") as "region_id"
@@ -34,7 +34,7 @@ object PersonLikesCategory {
       .withColumn("weight", col("visit_count") / col("total_visit_count") cast DoubleType)
       .select(
         col("person_id") as "source_id",
-        col("category") as "target_id",
+        col("category_id") as "target_id",
         col("weight"),
         col("region_id")
       )

@@ -37,7 +37,7 @@ object PlaceVisits {
         col("year_month"),
         col("region_id"),
         col("id") as "place_id",
-        col("category")
+        col("category_id")
       )
     placeVisits
       .repartition(col("region_id"), col("year_month"))
