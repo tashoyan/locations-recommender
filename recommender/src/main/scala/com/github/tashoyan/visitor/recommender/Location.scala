@@ -7,6 +7,13 @@ case class Location(latitude: Double, longitude: Double) {
   require(latitude >= MIN_LATITUDE && latitude <= MAX_LATITUDE, s"Latitude $latitude must be within range [$MIN_LATITUDE, $MAX_LATITUDE]")
   require(longitude >= MIN_LONGITUDE && longitude <= MAX_LONGITUDE, s"Longitude $longitude must be within range [$MIN_LONGITUDE, $MAX_LONGITUDE]")
 
+  /**
+    * Calculates the distance to another location.
+    * Uses [[https://en.wikipedia.org/wiki/Haversine_formula Haversine formula]].
+    *
+    * @param that The other location to calculate distance.
+    * @return Distance in meters.
+    */
   def distanceMeters(that: Location): Double = {
     Location.distanceMeters(this, that)
   }
