@@ -35,6 +35,11 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
     personLikesPlaceEdges.write
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/person_likes_place_edges")
+
+    val personLikesCategoryEdges = PersonLikesCategory.calcPersonLikesCategoryEdges(placeVisits)
+    personLikesCategoryEdges.write
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/person_likes_category_edges")
   }
 
   def printPlaceVisits(placeVisits: DataFrame): Unit = {
