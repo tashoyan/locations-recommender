@@ -18,7 +18,6 @@ object PlaceSimilarPlace {
   def calcPlaceSimilarPlaceEdges(placeVisits: DataFrame): DataFrame = {
     val thatPlaceVisits = placeVisits
       .select(
-        col("region_id"),
         col("person_id"),
         col("place_id") as "that_place_id",
         col("timestamp") as "that_timestamp"
@@ -28,15 +27,18 @@ object PlaceSimilarPlace {
       math.abs(ts1.getTime - ts2.getTime) <= placeSimilarityIntervalMillis
     }
     val samePersonVisitCounts = placeVisits
-      .join(thatPlaceVisits, Seq("region_id", "person_id"))
+      .join(thatPlaceVisits, "person_id")
       .where(
         col("place_id") =!= col("that_place_id") and
           isInPlaceSimilarityIntervalUdf(col("timestamp"), col("that_timestamp"))
       )
-      .groupBy("region_id", "place_id", "that_place_id")
-      .agg(count("person_id") as "visit_count")
+      .groupBy("place_id", "that_place_id")
+      .agg(
+        count("person_id") as "visit_count",
+        first("region_id") as "region_id"
+      )
 
-    val window = Window.partitionBy("region_id", "place_id")
+    val window = Window.partitionBy("place_id")
       .orderBy(col("visit_count").desc)
     val topSimilarPlaces = samePersonVisitCounts
       .withColumn("rank", rank() over window)
@@ -45,17 +47,15 @@ object PlaceSimilarPlace {
       .cache()
 
     val totalPlaceVisitCounts = topSimilarPlaces
-      .groupBy("region_id", "place_id")
+      .groupBy("place_id")
       .agg(sum("visit_count") as "total_visit_count")
       // Workaround for https://issues.apache.org/jira/browse/SPARK-14948
       .withColumnRenamed("place_id", "renamed_place_id")
-      .withColumnRenamed("region_id", "renamed_region_id")
 
     topSimilarPlaces
       .join(
         totalPlaceVisitCounts,
-        col("place_id") === col("renamed_place_id") and
-          col("region_id") === col("renamed_region_id")
+        col("place_id") === col("renamed_place_id")
       )
       .withColumn("weight", col("visit_count") / col("total_visit_count") cast DoubleType)
       .select(
