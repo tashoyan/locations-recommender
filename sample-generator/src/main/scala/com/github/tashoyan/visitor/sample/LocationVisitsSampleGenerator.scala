@@ -26,9 +26,9 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
   private val maxVisitCountsPerPerson: Int = sampleYear.length()
 
   def generate()(implicit spark: SparkSession): Unit = {
-    val locationVisitsPersons = generatePersons
-    val locationVisitsTimestamps = generateTimestamps(locationVisitsPersons)
-    val locationVisitsGeo = generateGeoLocations(locationVisitsTimestamps)
+    val locationVisitsPersons = withPersons
+    val locationVisitsTimestamps = withTimestamps(locationVisitsPersons)
+    val locationVisitsGeo = withGeoLocations(locationVisitsTimestamps)
     val locationVisits = locationVisitsGeo
       .repartition(col("region_id"), col("year_month"))
       .cache()
@@ -37,7 +37,7 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
     writeLocationVisits(locationVisits)
   }
 
-  private def generatePersons(implicit spark: SparkSession): DataFrame = {
+  private def withPersons(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
     (0 until personCount)
@@ -50,7 +50,7 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
       .toDF("person_id")
   }
 
-  private def generateTimestamps(input: DataFrame): DataFrame = {
+  private def withTimestamps(input: DataFrame): DataFrame = {
     val generateTimestampUdf = udf { factor: Double =>
       val offsetHours: Long = (visitsIntervalHours * factor).toLong
       val time = visitsFromTimestamp.plus(offsetHours, ChronoUnit.HOURS)
@@ -70,7 +70,7 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
       )
   }
 
-  private def generateGeoLocations(input: DataFrame): DataFrame = {
+  private def withGeoLocations(input: DataFrame): DataFrame = {
     val regionUdf = udf { regionId: Long =>
       regions.find(_.id == regionId)
         .get
