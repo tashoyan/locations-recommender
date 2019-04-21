@@ -36,7 +36,7 @@ object PlaceSimilarPlace {
       .groupBy("region_id", "place_id", "that_place_id")
       .agg(count("person_id") as "visit_count")
 
-    val window = Window.partitionBy("place_id")
+    val window = Window.partitionBy("region_id", "place_id")
       .orderBy(col("visit_count").desc)
     val topSimilarPlaces = samePersonVisitCounts
       .withColumn("rank", rank() over window)

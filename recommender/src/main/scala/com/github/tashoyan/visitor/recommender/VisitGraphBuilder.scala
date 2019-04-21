@@ -30,6 +30,11 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
     placeSimilarPlaceEdges.write
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/place_similar_place_edges")
+
+    val personLikesPlaceEdges = PersonLikesPlace.calcPersonLikesPlaceEdges(placeVisits)
+    personLikesPlaceEdges.write
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/person_likes_place_edges")
   }
 
   def printPlaceVisits(placeVisits: DataFrame): Unit = {
