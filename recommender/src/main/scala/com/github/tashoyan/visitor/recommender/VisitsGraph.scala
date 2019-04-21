@@ -1,8 +1,8 @@
 package com.github.tashoyan.visitor.recommender
 
+import com.github.tashoyan.visitor.recommender.VisitsGraph._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
-import VisitsGraph._
 
 class VisitsGraph {
 
@@ -18,8 +18,6 @@ class VisitsGraph {
       (location distanceMeters place) <= distanceAccuracyMeters
     }
 
-    //TODO How to partition input data sets? Both data sets on region id?
-    //TODO How to partition the output data set?
     locationVisits
       .withColumnRenamed("latitude", "location_latitude")
       .withColumnRenamed("longitude", "location_longitude")
