@@ -5,6 +5,10 @@ import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 object VisitGraphBuilder extends VisitGraphBuilderArgParser {
 
+  val betaPlacePlace: Double = 1.0
+  val betaPersonPlace: Double = 0.5
+  val betaPersonCategory: Double = 0.5
+
   def main(args: Array[String]): Unit = {
     parser.parse(args, VisitGraphBuilderConfig()) match {
       case Some(config) => doMain(config)
@@ -40,6 +44,44 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
     personLikesCategoryEdges.write
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/person_likes_category_edges")
+
+    val visitGraph = buildGraph(
+      placeSimilarPlaceEdges,
+      personLikesPlaceEdges,
+      personLikesCategoryEdges
+    )
+    visitGraph.write
+      .partitionBy("region_id")
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/visit_graph")
+  }
+
+  private def buildGraph(
+      placeSimilarPlaceEdges: DataFrame,
+      personLikesPlaceEdges: DataFrame,
+      personLikesCategoryEdges: DataFrame
+  ): DataFrame = {
+    placeSimilarPlaceEdges
+      .select(
+        col("source_id"),
+        col("target_id"),
+        col("weight") * betaPlacePlace as "balanced_weight",
+        col("region_id")
+      ) union
+        personLikesPlaceEdges
+        .select(
+          col("source_id"),
+          col("target_id"),
+          col("weight") * betaPersonPlace as "balanced_weight",
+          col("region_id")
+        ) union
+          personLikesCategoryEdges
+          .select(
+            col("source_id"),
+            col("target_id"),
+            col("weight") * betaPersonCategory as "balanced_weight",
+            col("region_id")
+          )
   }
 
   def printPlaceVisits(placeVisits: DataFrame): Unit = {
