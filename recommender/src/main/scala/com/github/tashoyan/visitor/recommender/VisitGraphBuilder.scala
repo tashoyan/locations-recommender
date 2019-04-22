@@ -6,6 +6,7 @@ import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 object VisitGraphBuilder extends VisitGraphBuilderArgParser {
 
   val betaPlacePlace: Double = 1.0
+  val betaCategoryPlace: Double = 1.0
   val betaPersonPlace: Double = 0.5
   val betaPersonCategory: Double = 0.5
 
@@ -35,6 +36,11 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/place_similar_place_edges")
 
+    val categorySelectedPlaceEdges = CategorySelectedPlace.calcCategorySelectedPlaceEdges(placeVisits)
+    categorySelectedPlaceEdges.write
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/category_selected_place_edges")
+
     val personLikesPlaceEdges = PersonLikesPlace.calcPersonLikesPlaceEdges(placeVisits)
     personLikesPlaceEdges.write
       .mode(SaveMode.Overwrite)
@@ -47,6 +53,7 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
 
     val visitGraph = buildGraph(
       placeSimilarPlaceEdges,
+      categorySelectedPlaceEdges,
       personLikesPlaceEdges,
       personLikesCategoryEdges
     )
@@ -56,8 +63,10 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
       .parquet(s"${config.samplesDir}/visit_graph")
   }
 
+  //TODO Test: the graph is stochastic - for any vertex, the sum of outbound edges' weights is 1.0
   private def buildGraph(
       placeSimilarPlaceEdges: DataFrame,
+      categorySelectedPlaceEdges: DataFrame,
       personLikesPlaceEdges: DataFrame,
       personLikesCategoryEdges: DataFrame
   ): DataFrame = {
@@ -68,20 +77,27 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
         col("weight") * betaPlacePlace as "balanced_weight",
         col("region_id")
       ) union
-        personLikesPlaceEdges
+        categorySelectedPlaceEdges
         .select(
           col("source_id"),
           col("target_id"),
-          col("weight") * betaPersonPlace as "balanced_weight",
+          col("weight") * betaCategoryPlace as "balanced_weight",
           col("region_id")
         ) union
-          personLikesCategoryEdges
+          personLikesPlaceEdges
           .select(
             col("source_id"),
             col("target_id"),
-            col("weight") * betaPersonCategory as "balanced_weight",
+            col("weight") * betaPersonPlace as "balanced_weight",
             col("region_id")
-          )
+          ) union
+            personLikesCategoryEdges
+            .select(
+              col("source_id"),
+              col("target_id"),
+              col("weight") * betaPersonCategory as "balanced_weight",
+              col("region_id")
+            )
   }
 
   def printPlaceVisits(placeVisits: DataFrame): Unit = {
