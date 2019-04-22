@@ -51,53 +51,52 @@ object VisitGraphBuilder extends VisitGraphBuilderArgParser {
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/person_likes_category_edges")
 
-    val visitGraph = buildGraph(
+    val betas = Seq(
+      betaPlacePlace,
+      betaCategoryPlace,
+      betaPersonPlace,
+      betaPersonCategory
+    )
+    val allEdges = Seq(
       placeSimilarPlaceEdges,
       categorySelectedPlaceEdges,
       personLikesPlaceEdges,
       personLikesCategoryEdges
     )
+    val visitGraph = buildVisitGraph(betas, allEdges)
+    writeVisitGraph(visitGraph)
+  }
+
+  //TODO Test: the graph is stochastic - for any vertex, the sum of outbound edges' weights is 1.0
+  private def buildVisitGraph(betas: Seq[Double], allEdges: Seq[DataFrame]): DataFrame = {
+    val firstBeta = betas.head
+    val firstEdges = allEdges.head
+    val firstGraph = firstEdges
+      .select(
+        col("source_id"),
+        col("target_id"),
+        col("weight") * firstBeta as "balanced_weight",
+        col("region_id")
+      )
+    val otherBetas = betas.tail
+    val otherEdges = allEdges.tail
+    (otherEdges zip otherBetas).foldLeft(firstGraph) { case (graph, (edges, beta)) =>
+      graph union
+        edges
+        .select(
+          col("source_id"),
+          col("target_id"),
+          col("weight") * beta as "balanced_weight",
+          col("region_id")
+        )
+    }
+  }
+
+  private def writeVisitGraph(visitGraph: DataFrame)(implicit config: VisitGraphBuilderConfig): Unit = {
     visitGraph.write
       .partitionBy("region_id")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/visit_graph")
-  }
-
-  //TODO Test: the graph is stochastic - for any vertex, the sum of outbound edges' weights is 1.0
-  private def buildGraph(
-      placeSimilarPlaceEdges: DataFrame,
-      categorySelectedPlaceEdges: DataFrame,
-      personLikesPlaceEdges: DataFrame,
-      personLikesCategoryEdges: DataFrame
-  ): DataFrame = {
-    placeSimilarPlaceEdges
-      .select(
-        col("source_id"),
-        col("target_id"),
-        col("weight") * betaPlacePlace as "balanced_weight",
-        col("region_id")
-      ) union
-        categorySelectedPlaceEdges
-        .select(
-          col("source_id"),
-          col("target_id"),
-          col("weight") * betaCategoryPlace as "balanced_weight",
-          col("region_id")
-        ) union
-          personLikesPlaceEdges
-          .select(
-            col("source_id"),
-            col("target_id"),
-            col("weight") * betaPersonPlace as "balanced_weight",
-            col("region_id")
-          ) union
-            personLikesCategoryEdges
-            .select(
-              col("source_id"),
-              col("target_id"),
-              col("weight") * betaPersonCategory as "balanced_weight",
-              col("region_id")
-            )
   }
 
   def printPlaceVisits(placeVisits: DataFrame): Unit = {
