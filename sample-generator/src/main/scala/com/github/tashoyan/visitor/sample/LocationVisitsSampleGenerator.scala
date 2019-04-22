@@ -9,7 +9,11 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DoubleType, IntegerType}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
-class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: SampleGeneratorConfig) extends Serializable {
+class LocationVisitsSampleGenerator(
+    regions: Seq[Region],
+    personCount: Long,
+    minPersonId: Long
+)(implicit val config: SampleGeneratorConfig) extends Serializable {
   private val regionCount: Int = regions.length
 
   //TODO Configurable sample parameters
@@ -21,7 +25,6 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
     .atOffset(ZoneOffset.UTC)
   private val visitsIntervalHours: Long = TimeUnit.DAYS.toHours(sampleYear.length().toLong)
 
-  private val personCount: Int = 1000
   /* Goes somewhere every day over the year */
   private val maxVisitCountsPerPerson: Int = sampleYear.length()
 
@@ -40,7 +43,7 @@ class LocationVisitsSampleGenerator(regions: Seq[Region])(implicit val config: S
   private def withPersons(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
-    (0 until personCount)
+    (minPersonId until minPersonId + personCount)
       .toDF("person_id")
       .withColumn("factor", rand(0L))
       .as[(Long, Double)]

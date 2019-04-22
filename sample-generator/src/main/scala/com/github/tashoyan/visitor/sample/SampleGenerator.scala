@@ -19,6 +19,7 @@ object SampleGenerator extends SampleGeneratorArgParser {
     "stadium",
     "park",
     "cafe",
+    "restaurant",
     "coworking",
     "office",
     "gas_station",
@@ -32,6 +33,13 @@ object SampleGenerator extends SampleGeneratorArgParser {
     "fallout_shelter"
   )
 
+  private val placeCount: Long = 300L
+  private val personCount: Long = 1000L
+
+  private val minCategiryId: Long = 0L
+  private val minPlaceId: Long = minCategiryId + placeCategories.length * 2
+  private val minPersonId: Long = minPlaceId + placeCount * 2
+
   def main(args: Array[String]): Unit = {
     parser.parse(args, SampleGeneratorConfig()) match {
       case Some(config) => doMain(config)
@@ -43,9 +51,19 @@ object SampleGenerator extends SampleGeneratorArgParser {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
 
-    new LocationVisitsSampleGenerator(regions)
+    new LocationVisitsSampleGenerator(
+      regions = regions,
+      personCount = personCount,
+      minPersonId = minPersonId
+    )
       .generate()
-    new PlacesSampleGenerator(regions, placeCategories)
+    new PlacesSampleGenerator(
+      regions = regions,
+      placeCategories = placeCategories,
+      minCategoryId = minCategiryId,
+      placeCount = placeCount,
+      minPlaceId = minPlaceId
+    )
       .generate()
 
     spark.stop()

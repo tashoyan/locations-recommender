@@ -5,10 +5,13 @@ import org.apache.spark.sql.{DataFrame, Dataset, SaveMode, SparkSession}
 
 class PlacesSampleGenerator(
     regions: Seq[Region],
-    placeCategories: Seq[String]
+    placeCategories: Seq[String],
+    minCategoryId: Long,
+    placeCount: Long,
+    minPlaceId: Long
 )(implicit val config: SampleGeneratorConfig) extends Serializable {
 
-  val placeCountPerRegion = 100
+  val placeCountPerRegion: Long = placeCount / regions.length
 
   def generate()(implicit spark: SparkSession): Unit = {
     val categories = generateCategories
@@ -31,6 +34,7 @@ class PlacesSampleGenerator(
 
     placeCategories
       .zipWithIndex
+      .map { case (category, categoryIdx) => (category, minCategoryId + categoryIdx) }
       .toDF("category", "category_id")
   }
 
@@ -41,7 +45,7 @@ class PlacesSampleGenerator(
     regionsDs
       .flatMap(generatePlaces)
       .withColumnRenamed("regionId", "region_id")
-      .withColumn("id", monotonically_increasing_id())
+      .withColumn("id", monotonically_increasing_id() + minPlaceId)
   }
 
   private def generatePlaces(region: Region): Iterable[Place] = {
@@ -69,7 +73,7 @@ class PlacesSampleGenerator(
 
   private def withCategories(input: DataFrame, categories: DataFrame): DataFrame = {
     val categoryIdUdf = udf { factor: Double =>
-      (factor * placeCategories.length).toLong
+      minCategoryId + (factor * placeCategories.length).toLong
     }
     input
       .withColumn("factor", rand(0L))
