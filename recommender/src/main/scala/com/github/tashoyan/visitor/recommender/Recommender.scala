@@ -36,12 +36,6 @@ object Recommender {
     println("sigma:")
     sigma.orderBy("target_id").show(false)
 
-    println("u join sigma:")
-    u
-      .join(sigma, col("id") === col("target_id"), "left")
-      .na.fill(0.0, Seq("sigma"))
-      .show(false)
-
     val x = u
       .join(sigma, col("id") === col("target_id"), "left")
       .na.fill(0.0, Seq("sigma"))
