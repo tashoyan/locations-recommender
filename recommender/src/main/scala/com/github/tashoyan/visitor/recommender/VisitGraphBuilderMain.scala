@@ -31,65 +31,14 @@ object VisitGraphBuilderMain extends VisitGraphBuilderArgParser {
     //    printPlaceVisits(placeVisits)
     writePlaceVisits(placeVisits)
 
-    val placeSimilarPlaceEdges = PlaceSimilarPlace.calcPlaceSimilarPlaceEdges(placeVisits)
-    placeSimilarPlaceEdges.write
-      .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/place_similar_place_edges")
-
-    val categorySelectedPlaceEdges = CategorySelectedPlace.calcCategorySelectedPlaceEdges(placeVisits)
-    categorySelectedPlaceEdges.write
-      .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/category_selected_place_edges")
-
-    val personLikesPlaceEdges = PersonLikesPlace.calcPersonLikesPlaceEdges(placeVisits)
-    personLikesPlaceEdges.write
-      .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/person_likes_place_edges")
-
-    val personLikesCategoryEdges = PersonLikesCategory.calcPersonLikesCategoryEdges(placeVisits)
-    personLikesCategoryEdges.write
-      .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/person_likes_category_edges")
-
-    val betas = Seq(
+    val graphBuilder = new VisitGraphBuilder(
       betaPlacePlace,
       betaCategoryPlace,
       betaPersonPlace,
       betaPersonCategory
     )
-    val allEdges = Seq(
-      placeSimilarPlaceEdges,
-      categorySelectedPlaceEdges,
-      personLikesPlaceEdges,
-      personLikesCategoryEdges
-    )
-    val visitGraph = buildVisitGraph(betas, allEdges)
+    val visitGraph = graphBuilder.buildVisitGraph(placeVisits)
     writeVisitGraph(visitGraph)
-  }
-
-  //TODO Test: the graph is stochastic - for any vertex, the sum of outbound edges' weights is 1.0
-  private def buildVisitGraph(betas: Seq[Double], allEdges: Seq[DataFrame]): DataFrame = {
-    val firstBeta = betas.head
-    val firstEdges = allEdges.head
-    val firstGraph = firstEdges
-      .select(
-        col("source_id"),
-        col("target_id"),
-        col("weight") * firstBeta as "balanced_weight",
-        col("region_id")
-      )
-    val otherBetas = betas.tail
-    val otherEdges = allEdges.tail
-    (otherEdges zip otherBetas).foldLeft(firstGraph) { case (graph, (edges, beta)) =>
-      graph union
-        edges
-        .select(
-          col("source_id"),
-          col("target_id"),
-          col("weight") * beta as "balanced_weight",
-          col("region_id")
-        )
-    }
   }
 
   private def writeVisitGraph(visitGraph: DataFrame)(implicit config: VisitGraphBuilderConfig): Unit = {
