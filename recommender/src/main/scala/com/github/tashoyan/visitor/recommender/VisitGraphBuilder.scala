@@ -1,13 +1,14 @@
 package com.github.tashoyan.visitor.recommender
 
+import com.github.tashoyan.visitor.recommender.VisitGraphBuilder._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.col
 
 class VisitGraphBuilder(
-    betaPlacePlace: Double,
-    betaCategoryPlace: Double,
-    betaPersonPlace: Double,
-    betaPersonCategory: Double
+    betaPlacePlace: Double, // track - track
+    betaCategoryPlace: Double, // artist - track
+    betaPersonPlace: Double, // user - track 0.4
+    betaPersonCategory: Double // user - artist 0.6
 ) {
 
   def buildVisitGraph(placeVisits: DataFrame): DataFrame = {
@@ -27,11 +28,15 @@ class VisitGraphBuilder(
       personLikesPlaceEdges,
       personLikesCategoryEdges
     )
-    composeGraph(betas, allEdges)
+    composeWithBalancedWeights(betas, allEdges)
   }
 
+}
+
+object VisitGraphBuilder {
+
   //TODO Test: the graph is stochastic - for any vertex, the sum of outbound edges' weights is 1.0
-  protected def composeGraph(betas: Seq[Double], allEdges: Seq[DataFrame]): DataFrame = {
+  def composeWithBalancedWeights(betas: Seq[Double], allEdges: Seq[DataFrame]): DataFrame = {
     val firstBeta = betas.head
     val firstEdges = allEdges.head
     val firstGraph = firstEdges
