@@ -11,6 +11,7 @@ class VisitGraphBuilderTest extends FunSuite with SparkTestHarness {
     import spark0.implicits._
 
     //TODO Rename entities: Person, Place, Category
+    //TODO Remove println
     val betas = Seq(
       0.4, //user - track
       0.6, //user - artist
@@ -51,7 +52,9 @@ class VisitGraphBuilderTest extends FunSuite with SparkTestHarness {
       trackArtistEdges
     )
     val balancedWeightsGraph = VisitGraphBuilder.composeWithBalancedWeights(betas, allEdges)
-    balancedWeightsGraph.show(false)
+    balancedWeightsGraph
+      .orderBy("source_id", "target_id")
+      .show(false)
     val balancedWeightSums = balancedWeightsGraph
       .groupBy("source_id")
       .agg(sum("balanced_weight") as "sum")
