@@ -3,7 +3,7 @@ package com.github.tashoyan.visitor.recommender
 import org.apache.spark.sql.functions.{col, max, min}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
-object VisitGraphBuilder extends VisitGraphBuilderArgParser {
+object VisitGraphBuilderMain extends VisitGraphBuilderArgParser {
 
   val betaPlacePlace: Double = 1.0
   val betaCategoryPlace: Double = 1.0
