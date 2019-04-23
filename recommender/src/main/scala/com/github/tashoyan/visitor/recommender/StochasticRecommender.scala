@@ -39,7 +39,7 @@ class StochasticRecommender(
 
   private val epsilonSquared = epsilon * epsilon
 
-  lazy val vertexes: DataFrame = {
+  private lazy val vertexes: DataFrame = {
     val sourceVertexes = stochasticEdges.select(col("source_id") as "id")
     val targetVertexes = stochasticEdges.select(col("target_id") as "id")
     (sourceVertexes union targetVertexes)
@@ -47,9 +47,9 @@ class StochasticRecommender(
       .cache()
   }
 
-  lazy val vertexCount: Long = vertexes.count()
+  private lazy val vertexCount: Long = vertexes.count()
 
-  lazy val x0: DataFrame = vertexes
+  private lazy val x0: DataFrame = vertexes
     .withColumn("probability", lit(1.0) / vertexCount.toDouble)
 
   /**
@@ -59,12 +59,26 @@ class StochasticRecommender(
     *                           The algorithm will find a list of vertexes,
     *                           that are reachable with highest probability from this vertex.
     * @param maxRecommendations How many recommended vertexes to return.
-    * @return List of the most recommended vertexes for the given vertex.
-    *         Most probable vertexes first.
+    * @return Data frame of the most recommended vertexes for the given vertex: `(vertex_id, probability)`
+    *         Ordered by probability descending.
+    * @throws IllegalArgumentException No such vertex in the graph.
     */
-  def makeRecommendations(vertexId: Long, maxRecommendations: Int): Seq[(Long, Double)] = {
+  def makeRecommendations(vertexId: Long, maxRecommendations: Int): DataFrame = {
     require(maxRecommendations >= 0, "max recommendations number must be non-negative")
 
+    if (isVertexExist(vertexId))
+      makeRecommendations0(vertexId, maxRecommendations)
+    else
+      throw new IllegalArgumentException(s"No such vertex in the graph: $vertexId")
+  }
+
+  private def isVertexExist(vertexId: Long): Boolean = {
+    vertexes
+      .where(col("id") === vertexId)
+      .count() > 0
+  }
+
+  private def makeRecommendations0(vertexId: Long, maxRecommendations: Int): DataFrame = {
     val u = vertexes
       .withColumn("u_probability", when(col("id") === vertexId, 1.0) otherwise 0.0)
       .cache()
@@ -73,8 +87,7 @@ class StochasticRecommender(
       .where(col("id") =!= vertexId)
       .orderBy(col("probability").desc)
       .limit(maxRecommendations)
-      .as[(Long, Double)]
-    recommendedVertexes.collect()
+    recommendedVertexes
   }
 
   @tailrec private def step(x: DataFrame, u: DataFrame, iteration: Int): DataFrame = {

@@ -39,12 +39,18 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
   }
 
   test("makeRecommendations - 1 iteration") {
+    val spark0 = spark
+    import spark0.implicits._
+
     val recommender = new StochasticRecommender(
       stochasticEdges(),
       epsilon = 0.01,
       maxIterations = 1
     )
-    val recommendations = recommender.makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+    val recommendations = recommender
+      .makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+      .as[(Long, Double)]
+      .collect()
 
     println("Recommendations:")
     recommendations.foreach(println)
@@ -59,12 +65,18 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
   }
 
   test("makeRecommendations - converge") {
+    val spark0 = spark
+    import spark0.implicits._
+
     val recommender = new StochasticRecommender(
       stochasticEdges(),
       epsilon = 0.05,
       maxIterations = 1000
     )
-    val recommendations = recommender.makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+    val recommendations = recommender
+      .makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+      .as[(Long, Double)]
+      .collect()
 
     println("Recommendations:")
     recommendations.foreach(println)
@@ -76,6 +88,17 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       (4L, 0.014978183624999999)
     )
     recommendations should be(expectedRecommendations)
+  }
+
+  test("makeRecommendations - non-existing vertex") {
+    val recommender = new StochasticRecommender(
+      stochasticEdges(),
+      epsilon = 0.05,
+      maxIterations = 1000
+    )
+    intercept[IllegalArgumentException] {
+      recommender.makeRecommendations(vertexId = 100L, maxRecommendations = 10)
+    }
   }
 
 }
