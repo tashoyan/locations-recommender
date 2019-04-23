@@ -6,6 +6,7 @@ import org.scalatest.FunSuite
 import org.scalatest.Matchers._
 
 //TODO Remove println
+//TODO Tests on corner cases (zero epsilon, maxIterations, maxRecommendations)
 class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
 
   private val sample = Seq(
@@ -19,6 +20,17 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
     (4L, 5L, 0.7),
     (5L, 3L, 1.0)
   )
+
+  assertSampleStochastic()
+
+  private def assertSampleStochastic(): Unit = {
+    val weightSums: Map[Long, Double] = sample
+      .groupBy(_._1)
+      .mapValues(_.map(_._3).sum)
+    weightSums.foreach { case (vertexId, weightSum) =>
+      assert(weightSum === 1.0, s"Sum of weights for vertex $vertexId must be 1.0")
+    }
+  }
 
   private def stochasticEdges(): DataFrame = {
     val spark0 = spark
