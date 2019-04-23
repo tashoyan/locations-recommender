@@ -22,10 +22,10 @@ object Recommender {
     val u = vertexes
       .withColumn("u_probability", when(col("id") === userId, 1.0) otherwise 0.0)
 
-    println("x0:")
-    x0.orderBy("id").show(false)
-    println("u:")
-    u.orderBy("id").show(false)
+    //    println("x0:")
+    //    x0.orderBy("id").show(false)
+    //    println("u:")
+    //    u.orderBy("id").show(false)
 
     val sigma = x0
       .join(visitGraph, col("id") === col("source_id"))
@@ -33,8 +33,8 @@ object Recommender {
       .withColumn("acc", col("probability") * col("balanced_weight"))
       .groupBy("target_id")
       .agg(sum("acc") as "sigma")
-    println("sigma:")
-    sigma.orderBy("target_id").show(false)
+    //    println("sigma:")
+    //    sigma.orderBy("target_id").show(false)
 
     val x = u
       .join(sigma, col("id") === col("target_id"), "left")

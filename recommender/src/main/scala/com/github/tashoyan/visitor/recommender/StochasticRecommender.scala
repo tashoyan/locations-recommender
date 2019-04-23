@@ -25,11 +25,12 @@ import scala.annotation.tailrec
   * @param maxIterations   Maximum number of iterations.
   *                        The algorithm stops after the maximum iterations number is reached.
   */
+//TODO Validate parameters
 class StochasticRecommender(
-                             stochasticEdges: DataFrame,
-                             epsilon: Double,
-                             maxIterations: Int
-                           )(implicit spark: SparkSession) {
+    stochasticEdges: DataFrame,
+    epsilon: Double,
+    maxIterations: Int
+)(implicit spark: SparkSession) {
 
   import spark.implicits._
 
@@ -60,7 +61,7 @@ class StochasticRecommender(
     * @return List of the most recommended vertexes for the given vertex.
     *         Most probable vertexes first.
     */
-  def makeRecommendation(vertexId: Long, maxRecommendations: Int): Seq[(Long, Double)] = {
+  def makeRecommendations(vertexId: Long, maxRecommendations: Int): Seq[(Long, Double)] = {
     val u = vertexes
       .withColumn("u_probability", when(col("id") === vertexId, 1.0) otherwise 0.0)
       .cache()
@@ -75,14 +76,17 @@ class StochasticRecommender(
 
   @tailrec private def step(x: DataFrame, u: DataFrame, iteration: Int): DataFrame = {
     if (iteration >= maxIterations) {
+      println(s"Number of iterations $iteration reached the maximum $maxIterations")
       x
     } else {
       val nextX = calcNextX(x, u)
         .cache()
-      if (isConverged(x, nextX))
+      if (isConverged(x, nextX)) {
+        println(s"Converged in $iteration iterations")
         nextX
-      else
+      } else {
         step(nextX, u, iteration + 1)
+      }
     }
   }
 
