@@ -116,9 +116,8 @@ class StochasticRecommender(
     val diffSquared = nextX
       .withColumnRenamed("probability", "next_probability")
       .join(x, "id")
-      .select(
-        pow(col("next_probability") - col("probability"), 2) as "diff_squared"
-      )
+      .select(col("next_probability") - col("probability") as "diff")
+      .select(col("diff") * col("diff") as "diff_squared")
       .as[Double]
       .rdd
       .sum()
