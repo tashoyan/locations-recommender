@@ -1,35 +1,69 @@
 package com.github.tashoyan.visitor.recommender
 
 import com.github.tashoyan.visitor.test.SparkTestHarness
+import org.apache.spark.sql.DataFrame
 import org.scalatest.FunSuite
+import org.scalatest.Matchers._
 
+//TODO Remove println
 class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
 
-  test("makeRecommendations") {
+  private val sample = Seq(
+    (1L, 2L, 0.4),
+    (1L, 3L, 0.24),
+    (1L, 5L, 0.36),
+    (2L, 4L, 0.3),
+    (2L, 3L, 0.7),
+    (3L, 5L, 1.0),
+    (4L, 2L, 0.3),
+    (4L, 5L, 0.7),
+    (5L, 3L, 1.0)
+  )
+
+  private def stochasticEdges(): DataFrame = {
     val spark0 = spark
     import spark0.implicits._
+    sample.toDF("source_id", "target_id", "balanced_weight")
+  }
 
-    val stochasticEdges = Seq(
-      (1L, 2L, 0.4),
-      (1L, 3L, 0.24),
-      (1L, 5L, 0.36),
-      (2L, 4L, 0.3),
-      (2L, 3L, 0.7),
-      (3L, 5L, 1.0),
-      (4L, 2L, 0.3),
-      (4L, 5L, 0.7),
-      (5L, 3L, 1.0)
-    )
-      .toDF("source_id", "target_id", "balanced_weight")
-
+  test("makeRecommendations - 1 iteration") {
     val recommender = new StochasticRecommender(
-      stochasticEdges,
+      stochasticEdges(),
       epsilon = 0.01,
-      maxIterations = 20
+      maxIterations = 1
     )
     val recommendations = recommender.makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+
     println("Recommendations:")
     recommendations.foreach(println)
+
+    val expectedRecommendations = Seq(
+      (5L, 0.3502),
+      (3L, 0.3298),
+      (2L, 0.11900000000000001),
+      (4L, 0.051)
+    )
+    recommendations should be(expectedRecommendations)
+  }
+
+  test("makeRecommendations - converge") {
+    val recommender = new StochasticRecommender(
+      stochasticEdges(),
+      epsilon = 0.05,
+      maxIterations = 1000
+    )
+    val recommendations = recommender.makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+
+    println("Recommendations:")
+    recommendations.foreach(println)
+
+    val expectedRecommendations = Seq(
+      (3L, 0.408242766375),
+      (5L, 0.3716171248749999),
+      (2L, 0.055161925125),
+      (4L, 0.014978183624999999)
+    )
+    recommendations should be(expectedRecommendations)
   }
 
 }
