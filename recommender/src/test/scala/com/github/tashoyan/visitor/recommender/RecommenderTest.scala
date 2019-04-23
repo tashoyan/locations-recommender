@@ -10,7 +10,7 @@ class RecommenderTest extends FunSuite with SparkTestHarness {
     val spark0 = spark
     import spark0.implicits._
 
-    val visitGraph = Seq(
+    val stochasticGraph = Seq(
       (1L, 2L, 0.4),
       (1L, 3L, 0.24),
       (1L, 5L, 0.36),
@@ -22,7 +22,7 @@ class RecommenderTest extends FunSuite with SparkTestHarness {
       (5L, 3L, 1.0)
     )
       .toDF("source_id", "target_id", "balanced_weight")
-    Recommender.recommend(visitGraph, 1L)
+    Recommender.recommend(stochasticGraph, 1L)
   }
 
 }

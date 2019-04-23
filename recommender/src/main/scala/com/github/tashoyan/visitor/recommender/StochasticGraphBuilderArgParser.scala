@@ -2,10 +2,10 @@ package com.github.tashoyan.visitor.recommender
 
 import scopt.OptionParser
 
-trait VisitGraphBuilderArgParser {
+trait StochasticGraphBuilderArgParser {
 
-  val parser: OptionParser[VisitGraphBuilderConfig] = new OptionParser[VisitGraphBuilderConfig]("visit-graph-builder") {
-    head("Visit Graph Builder")
+  val parser: OptionParser[StochasticGraphBuilderConfig] = new OptionParser[StochasticGraphBuilderConfig]("stochastic-graph-builder") {
+    head("Stochastic Graph Builder")
 
     opt[String]("samples-dir")
       .required()

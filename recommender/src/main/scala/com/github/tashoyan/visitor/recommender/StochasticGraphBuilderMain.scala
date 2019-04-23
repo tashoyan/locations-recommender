@@ -3,7 +3,7 @@ package com.github.tashoyan.visitor.recommender
 import org.apache.spark.sql.functions.{col, max, min}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
-object VisitGraphBuilderMain extends VisitGraphBuilderArgParser {
+object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
 
   val betaPlacePlace: Double = 1.0
   val betaCategoryPlace: Double = 1.0
@@ -11,13 +11,13 @@ object VisitGraphBuilderMain extends VisitGraphBuilderArgParser {
   val betaPersonCategory: Double = 0.5
 
   def main(args: Array[String]): Unit = {
-    parser.parse(args, VisitGraphBuilderConfig()) match {
+    parser.parse(args, StochasticGraphBuilderConfig()) match {
       case Some(config) => doMain(config)
       case None => sys.exit(1)
     }
   }
 
-  private def doMain(implicit config: VisitGraphBuilderConfig): Unit = {
+  private def doMain(implicit config: StochasticGraphBuilderConfig): Unit = {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
 
@@ -29,20 +29,30 @@ object VisitGraphBuilderMain extends VisitGraphBuilderArgParser {
     val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
       .cache()
     //    printPlaceVisits(placeVisits)
-    writePlaceVisits(placeVisits)
+//    writePlaceVisits(placeVisits)
 
-    val graphBuilder = new VisitGraphBuilder(
+    val placeSimilarPlaceEdges = PlaceSimilarPlace.calcPlaceSimilarPlaceEdges(placeVisits)
+    val categorySelectedPlaceEdges = CategorySelectedPlace.calcCategorySelectedPlaceEdges(placeVisits)
+    val personLikesPlaceEdges = PersonLikesPlace.calcPersonLikesPlaceEdges(placeVisits)
+    val personLikesCategoryEdges = PersonLikesCategory.calcPersonLikesCategoryEdges(placeVisits)
+    val allEdges = Seq(
+      placeSimilarPlaceEdges,
+      categorySelectedPlaceEdges,
+      personLikesPlaceEdges,
+      personLikesCategoryEdges
+    )
+    val betas = Seq(
       betaPlacePlace,
       betaCategoryPlace,
       betaPersonPlace,
       betaPersonCategory
     )
-    val visitGraph = graphBuilder.buildVisitGraph(placeVisits)
-    writeVisitGraph(visitGraph)
+    val stochasticGraph = StochasticGraphBuilder.buildWithBalancedWeights(betas, allEdges)
+    writeStochasticGraph(stochasticGraph)
   }
 
-  private def writeVisitGraph(visitGraph: DataFrame)(implicit config: VisitGraphBuilderConfig): Unit = {
-    visitGraph.write
+  private def writeStochasticGraph(graph: DataFrame)(implicit config: StochasticGraphBuilderConfig): Unit = {
+    graph.write
       .partitionBy("region_id")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/visit_graph")
@@ -75,7 +85,7 @@ object VisitGraphBuilderMain extends VisitGraphBuilderArgParser {
     placeVisits.show(false)
   }
 
-  private def writePlaceVisits(placeVisits: DataFrame)(implicit config: VisitGraphBuilderConfig): Unit = {
+  def writePlaceVisits(placeVisits: DataFrame)(implicit config: StochasticGraphBuilderConfig): Unit = {
     placeVisits
       .write
       .partitionBy("region_id", "year_month")

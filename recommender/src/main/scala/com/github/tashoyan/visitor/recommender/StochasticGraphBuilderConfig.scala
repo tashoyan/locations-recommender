@@ -1,5 +1,5 @@
 package com.github.tashoyan.visitor.recommender
 
-case class VisitGraphBuilderConfig(
+case class StochasticGraphBuilderConfig(
     samplesDir: String = ""
 )

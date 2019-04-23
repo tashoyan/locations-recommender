@@ -4,13 +4,12 @@ import com.github.tashoyan.visitor.test.SparkTestHarness
 import org.scalatest.FunSuite
 import org.apache.spark.sql.functions.sum
 
-class VisitGraphBuilderTest extends FunSuite with SparkTestHarness {
+class StochasticGraphBuilderTest extends FunSuite with SparkTestHarness {
 
-  test("composeWithBalancedWeights") {
+  test("buildWithBalancedWeights") {
     val spark0 = spark
     import spark0.implicits._
 
-    //TODO Rename entities: Person, Place, Category
     //TODO Remove println
     val betas = Seq(
       0.4, //person - place
@@ -51,7 +50,7 @@ class VisitGraphBuilderTest extends FunSuite with SparkTestHarness {
       placePlaceEdges,
       placeCategoryEdges
     )
-    val balancedWeightsGraph = VisitGraphBuilder.composeWithBalancedWeights(betas, allEdges)
+    val balancedWeightsGraph = StochasticGraphBuilder.buildWithBalancedWeights(betas, allEdges)
     balancedWeightsGraph
       .orderBy("source_id", "target_id")
       .show(false)

@@ -9,11 +9,11 @@ object Recommender {
   val alpha: Double = 0.15
 
   def recommend(
-      visitGraph: DataFrame,
-      userId: Long
+                 stochasticGraph: DataFrame,
+                 userId: Long
   ): Unit = {
-    val sourceVertexes = visitGraph.select(col("source_id") as "id")
-    val targetVertexes = visitGraph.select(col("target_id") as "id")
+    val sourceVertexes = stochasticGraph.select(col("source_id") as "id")
+    val targetVertexes = stochasticGraph.select(col("target_id") as "id")
     val vertexes = (sourceVertexes union targetVertexes)
       .distinct()
       .cache()
@@ -29,7 +29,7 @@ object Recommender {
     //    u.orderBy("id").show(false)
 
     val sigma = x0
-      .join(visitGraph, col("id") === col("source_id"))
+      .join(stochasticGraph, col("id") === col("source_id"))
       .na.fill(0.0, Seq("probability"))
       .withColumn("acc", col("probability") * col("balanced_weight"))
       .groupBy("target_id")
