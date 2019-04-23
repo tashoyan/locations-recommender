@@ -55,7 +55,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     graph.write
       .partitionBy("region_id")
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/visit_graph")
+      .parquet(s"${config.samplesDir}/stochastic_graph")
   }
 
   def printPlaceVisits(placeVisits: DataFrame): Unit = {
