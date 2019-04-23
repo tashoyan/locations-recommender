@@ -29,7 +29,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
       .cache()
     //    printPlaceVisits(placeVisits)
-//    writePlaceVisits(placeVisits)
+    //    writePlaceVisits(placeVisits)
 
     val placeSimilarPlaceEdges = PlaceSimilarPlace.calcPlaceSimilarPlaceEdges(placeVisits)
     val categorySelectedPlaceEdges = CategorySelectedPlace.calcCategorySelectedPlaceEdges(placeVisits)
