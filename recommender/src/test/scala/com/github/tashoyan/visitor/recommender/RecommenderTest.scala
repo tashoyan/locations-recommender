@@ -3,6 +3,7 @@ package com.github.tashoyan.visitor.recommender
 import com.github.tashoyan.visitor.test.SparkTestHarness
 import org.scalatest.FunSuite
 
+@deprecated(message = "Use StochasticRecommender instead", since = "now")
 class RecommenderTest extends FunSuite with SparkTestHarness {
 
   test("recommend") {

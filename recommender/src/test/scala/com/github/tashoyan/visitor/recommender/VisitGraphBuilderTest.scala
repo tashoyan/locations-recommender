@@ -13,43 +13,43 @@ class VisitGraphBuilderTest extends FunSuite with SparkTestHarness {
     //TODO Rename entities: Person, Place, Category
     //TODO Remove println
     val betas = Seq(
-      0.4, //user - track
-      0.6, //user - artist
-      1.0, //artist - artist
-      0.3, //track - track
-      0.7 //track - artist
+      0.4, //person - place
+      0.6, //person - category
+      1.0, //category - category
+      0.3, //place - place
+      0.7 //place - category
     )
-    val userTrackEdges = Seq(
+    val personPlaceEdges = Seq(
       (1, 2, 1.0, 0)
     )
       .toDF("source_id", "target_id", "weight", "region_id")
-    val userArtistEdges = Seq(
+    val personCategoryEdges = Seq(
       (1, 3, 0.4, 0),
       (1, 5, 0.6, 0)
     )
       .toDF("source_id", "target_id", "weight", "region_id")
-    val artistArtistEdges = Seq(
+    val categoryCategoryEdges = Seq(
       (3, 5, 1.0, 0),
       (5, 3, 1.0, 0)
     )
       .toDF("source_id", "target_id", "weight", "region_id")
-    val trackTrackEdges = Seq(
+    val placePlaceEdges = Seq(
       (2, 4, 1.0, 0),
       (4, 2, 1.0, 0)
     )
       .toDF("source_id", "target_id", "weight", "region_id")
-    val trackArtistEdges = Seq(
+    val placeCategoryEdges = Seq(
       (2, 3, 1.0, 0),
       (4, 5, 1.0, 0)
     )
       .toDF("source_id", "target_id", "weight", "region_id")
 
     val allEdges = Seq(
-      userTrackEdges,
-      userArtistEdges,
-      artistArtistEdges,
-      trackTrackEdges,
-      trackArtistEdges
+      personPlaceEdges,
+      personCategoryEdges,
+      categoryCategoryEdges,
+      placePlaceEdges,
+      placeCategoryEdges
     )
     val balancedWeightsGraph = VisitGraphBuilder.composeWithBalancedWeights(betas, allEdges)
     balancedWeightsGraph

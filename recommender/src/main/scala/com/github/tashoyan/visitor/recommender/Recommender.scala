@@ -4,6 +4,7 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.DoubleType
 
+@deprecated(message = "Use StochasticRecommender instead", since = "now")
 object Recommender {
   val alpha: Double = 0.15
 

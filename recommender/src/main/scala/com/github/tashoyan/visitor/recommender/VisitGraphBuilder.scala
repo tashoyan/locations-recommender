@@ -5,10 +5,10 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.col
 
 class VisitGraphBuilder(
-    betaPlacePlace: Double, // track - track
-    betaCategoryPlace: Double, // artist - track
-    betaPersonPlace: Double, // user - track 0.4
-    betaPersonCategory: Double // user - artist 0.6
+    betaPlacePlace: Double,
+    betaCategoryPlace: Double,
+    betaPersonPlace: Double,
+    betaPersonCategory: Double
 ) {
 
   def buildVisitGraph(placeVisits: DataFrame): DataFrame = {
