@@ -25,4 +25,7 @@ spark-submit \
 --conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=file://$log_config_file" \
 --class com.github.tashoyan.visitor.recommender.RecommenderMain \
 "$jar_file" \
---samples-dir "$samples_dir"
+--samples-dir "$samples_dir" \
+--epsilon 0.01 \
+--max-iterations 20 \
+--max-recommendations 10

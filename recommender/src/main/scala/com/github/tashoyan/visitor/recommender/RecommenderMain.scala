@@ -7,10 +7,6 @@ import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
 object RecommenderMain extends RecommenderArgParser {
-  //TODO Configurable
-  private val epsilon = 0.05
-  private val maxIterations = 20
-  private val maxRecommendations: Int = 10
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, RecommenderConfig()) match {
@@ -22,6 +18,8 @@ object RecommenderMain extends RecommenderArgParser {
   private def doMain(implicit config: RecommenderConfig): Unit = {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
+
+    Console.out.println(s"Actual configuration: $config")
 
     val placesFile = s"${config.samplesDir}/places_sample"
     Console.out.println(s"Loading places from $placesFile")
@@ -35,8 +33,8 @@ object RecommenderMain extends RecommenderArgParser {
 
     val recommender = new StochasticRecommender(
       stochasticGraph,
-      epsilon,
-      maxIterations
+      config.epsilon,
+      config.maxIterations
     )
     while (true) {
       val userInput = StdIn.readLine("Enter ID of the person to be provided with recommendations (CTRL-C for exit):")
@@ -50,8 +48,8 @@ object RecommenderMain extends RecommenderArgParser {
     }
   }
 
-  private def printRecommendations(personId: Long, recommender: StochasticRecommender, places: DataFrame): Unit = {
-    Try(recommender.makeRecommendations(personId, maxRecommendations)) match {
+  private def printRecommendations(personId: Long, recommender: StochasticRecommender, places: DataFrame)(implicit config: RecommenderConfig): Unit = {
+    Try(recommender.makeRecommendations(personId, config.maxRecommendations)) match {
       case Success(recommendations) =>
         printRecommendations(personId, recommendations, places)
       case Failure(e) =>
