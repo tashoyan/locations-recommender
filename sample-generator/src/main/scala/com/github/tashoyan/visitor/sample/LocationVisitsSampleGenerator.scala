@@ -82,20 +82,20 @@ class LocationVisitsSampleGenerator(
     input
       .withColumn("region_id", rand(0L) * regionCount cast IntegerType)
       .withColumn("region", regionUdf(col("region_id")))
-      .withColumn("random_latitude", randn(0))
-      .withColumn("random_longitude", randn(0))
+      .withColumn("latitude_factor", randn(0))
+      .withColumn("longitude_factor", randn(0))
       .withColumn(
         "latitude",
-        expr("region.minLatitude + (region.maxLatitude - region.minLatitude) * random_latitude") cast DoubleType
+        expr("region.minLatitude + (region.maxLatitude - region.minLatitude) * latitude_factor") cast DoubleType
       )
       .withColumn(
         "longitude",
-        expr("region.minLongitude + (region.maxLongitude - region.minLongitude) * random_longitude") cast DoubleType
+        expr("region.minLongitude + (region.maxLongitude - region.minLongitude) * longitude_factor") cast DoubleType
       )
       .drop(
         "region",
-        "random_latitude",
-        "random_longitude"
+        "latitude_factor",
+        "longitude_factor"
       )
   }
 
