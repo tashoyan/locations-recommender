@@ -94,8 +94,8 @@ class LocationVisitsSampleGenerator(
   private def withGeoLocations(input: DataFrame): DataFrame = {
     input
       .withColumn("region", regionUdf(col("region_id")))
-      .withColumn("latitude_factor", randn(0))
-      .withColumn("longitude_factor", randn(0))
+      .withColumn("latitude_factor", rand(0))
+      .withColumn("longitude_factor", rand(0))
       .withColumn(
         "latitude",
         expr("region.minLatitude + (region.maxLatitude - region.minLatitude) * latitude_factor") cast DoubleType
