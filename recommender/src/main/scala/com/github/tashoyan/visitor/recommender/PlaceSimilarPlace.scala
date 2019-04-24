@@ -33,10 +33,7 @@ object PlaceSimilarPlace {
           isInPlaceSimilarityIntervalUdf(col("timestamp"), col("that_timestamp"))
       )
       .groupBy("place_id", "that_place_id")
-      .agg(
-        count("person_id") as "visit_count",
-        first("region_id") as "region_id"
-      )
+      .agg(count("person_id") as "visit_count")
 
     val window = Window.partitionBy("place_id")
       .orderBy(col("visit_count").desc)
@@ -61,10 +58,8 @@ object PlaceSimilarPlace {
       .select(
         col("place_id") as "source_id",
         col("that_place_id") as "target_id",
-        col("weight"),
-        col("region_id")
+        col("weight")
       )
-      .repartition(col("region_id"))
   }
 
 }

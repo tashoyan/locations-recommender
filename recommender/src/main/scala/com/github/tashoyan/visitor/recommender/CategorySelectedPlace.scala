@@ -2,7 +2,7 @@ package com.github.tashoyan.visitor.recommender
 
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.{col, count, rank, sum}
 import org.apache.spark.sql.types.DoubleType
 
 object CategorySelectedPlace {
@@ -12,10 +12,7 @@ object CategorySelectedPlace {
   def calcCategorySelectedPlaceEdges(placeVisits: DataFrame): DataFrame = {
     val placeCounts = placeVisits
       .groupBy("category_id", "place_id")
-      .agg(
-        count("*") as "place_count",
-        first("region_id") as "region_id"
-      )
+      .agg(count("*") as "place_count")
 
     val window = Window.partitionBy("category_id")
       .orderBy(col("place_count").desc)
@@ -35,10 +32,8 @@ object CategorySelectedPlace {
       .select(
         col("category_id") as "source_id",
         col("place_id") as "target_id",
-        col("weight"),
-        col("region_id")
+        col("weight")
       )
-      .repartition(col("region_id"))
   }
 
 }

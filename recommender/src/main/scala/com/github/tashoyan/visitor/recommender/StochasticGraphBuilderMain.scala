@@ -51,9 +51,9 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     writeStochasticGraph(stochasticGraph)
   }
 
+  //TODO How to partition the stochastic graph?
   private def writeStochasticGraph(graph: DataFrame)(implicit config: StochasticGraphBuilderConfig): Unit = {
     graph.write
-      .partitionBy("region_id")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/stochastic_graph")
   }
