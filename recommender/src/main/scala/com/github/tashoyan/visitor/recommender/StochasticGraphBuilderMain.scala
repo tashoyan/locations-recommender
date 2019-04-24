@@ -1,7 +1,7 @@
 package com.github.tashoyan.visitor.recommender
 
 import org.apache.spark.sql.functions.{col, max, min}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
 
@@ -26,11 +26,49 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     val places = spark.read
       .parquet(s"${config.samplesDir}/places_sample")
 
+    Console.out.println("Generating place visits")
     val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
       .cache()
-    //    printPlaceVisits(placeVisits)
+    printPlaceVisits(placeVisits)
     writePlaceVisits(placeVisits)
 
+    generateRegionGraphs(placeVisits)
+  }
+
+  private def generateRegionGraphs(placeVisits: DataFrame)(implicit spark: SparkSession, config: StochasticGraphBuilderConfig): Unit = {
+    import spark.implicits._
+
+    val regionIds = placeVisits
+      .select("region_id")
+      .distinct()
+      .as[Long]
+      .collect()
+      .toSeq
+
+    val perRegionPlaceVisits = regionIds.
+      map(regionId => (Seq(regionId), extractRegionsPlaceVisits(Seq(regionId), placeVisits)))
+    val pairwiseRegionPlaceVisits = regionIds.combinations(2)
+      .map(regIds => (regIds.sorted, extractRegionsPlaceVisits(regIds, placeVisits)))
+
+    val regionStochasticGraphs = (perRegionPlaceVisits ++ pairwiseRegionPlaceVisits)
+      .map { case (regIds, regPlaceVisits) =>
+        (generateGraphFileName(regIds), generateStochasticGraph(regPlaceVisits))
+      }
+    regionStochasticGraphs.foreach { case (fileName, graph) =>
+      Console.out.println(s"Writing stochastic graph : $fileName")
+      writeStochasticGraph(fileName, graph)
+    }
+  }
+
+  private def extractRegionsPlaceVisits(regionIds: Seq[Long], placeVisits: DataFrame): DataFrame = {
+    val whereCondition: Column = regionIds
+      .map(col("region_id") === _)
+      .reduce(_ or _)
+    placeVisits
+      .where(whereCondition)
+  }
+
+  private def generateStochasticGraph(placeVisits: DataFrame): DataFrame = {
     val placeSimilarPlaceEdges = PlaceSimilarPlace.calcPlaceSimilarPlaceEdges(placeVisits)
     val categorySelectedPlaceEdges = CategorySelectedPlace.calcCategorySelectedPlaceEdges(placeVisits)
     val personLikesPlaceEdges = PersonLikesPlace.calcPersonLikesPlaceEdges(placeVisits)
@@ -48,14 +86,20 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
       betaPersonCategory
     )
     val stochasticGraph = StochasticGraphBuilder.buildWithBalancedWeights(betas, allEdges)
-    writeStochasticGraph(stochasticGraph)
+    stochasticGraph
+  }
+
+  private def generateGraphFileName(regionIds: Seq[Long])(implicit config: StochasticGraphBuilderConfig): String = {
+    regionIds
+      .map(regId => s"region$regId")
+      .mkString(s"${config.samplesDir}/stochastic_graph_", "_", "")
   }
 
   //TODO How to partition the stochastic graph?
-  private def writeStochasticGraph(graph: DataFrame)(implicit config: StochasticGraphBuilderConfig): Unit = {
+  private def writeStochasticGraph(fileName: String, graph: DataFrame): Unit = {
     graph.write
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/stochastic_graph")
+      .parquet(fileName)
   }
 
   def printPlaceVisits(placeVisits: DataFrame): Unit = {
