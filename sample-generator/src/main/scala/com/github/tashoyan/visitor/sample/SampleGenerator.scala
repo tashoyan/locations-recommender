@@ -34,7 +34,7 @@ object SampleGenerator extends SampleGeneratorArgParser {
   )
 
   private val placeCount: Long = 300L
-  private val personCount: Long = 1000L
+  private val personCount: Long = 3000L
 
   private val minCategiryId: Long = 0L
   private val minPlaceId: Long = minCategiryId + placeCategories.length * 2

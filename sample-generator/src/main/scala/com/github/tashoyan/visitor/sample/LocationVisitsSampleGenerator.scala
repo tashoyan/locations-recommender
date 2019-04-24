@@ -5,9 +5,10 @@ import java.time.temporal.ChronoUnit
 import java.time.{OffsetDateTime, Year, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
+import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DoubleType, IntegerType}
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.types.DoubleType
+import org.apache.spark.sql.{DataFrame, Dataset, SaveMode, SparkSession}
 
 class LocationVisitsSampleGenerator(
     regions: Seq[Region],
@@ -15,6 +16,7 @@ class LocationVisitsSampleGenerator(
     minPersonId: Long
 )(implicit val config: SampleGeneratorConfig) extends Serializable {
   private val regionCount: Int = regions.length
+  private val personCountPerRegion: Long = personCount / regionCount
 
   //TODO Configurable sample parameters
 
@@ -28,29 +30,85 @@ class LocationVisitsSampleGenerator(
   /* Goes somewhere every day over the year */
   private val maxVisitCountsPerPerson: Int = sampleYear.length()
 
+  private val regionUdf: UserDefinedFunction = udf { regionId: Long =>
+    regions.find(_.id == regionId)
+      .get
+  }
+
   def generate()(implicit spark: SparkSession): Unit = {
-    val locationVisitsPersons = withPersons
-    val locationVisitsTimestamps = withTimestamps(locationVisitsPersons)
-    val locationVisitsGeo = withGeoLocations(locationVisitsTimestamps)
-    val locationVisits = locationVisitsGeo
+    val persons = generatePersons
+    writePersons(persons)
+
+    val personVisits = withVisits(persons)
+    val geoVisits = withGeoLocations(personVisits)
+    val timestampLocationVisits = withTimestamps(geoVisits)
+
+    val locationVisits = timestampLocationVisits
       .repartition(col("region_id"), col("year_month"))
       .cache()
 
     printLocationVisits(locationVisits)
+    assertLocationVisitsCorrect(locationVisits)
     writeLocationVisits(locationVisits)
   }
 
-  private def withPersons(implicit spark: SparkSession): DataFrame = {
+  private def generatePersons(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
-    (minPersonId until minPersonId + personCount)
-      .toDF("person_id")
-      .withColumn("factor", rand(0L))
-      .as[(Long, Double)]
-      .flatMap { case (personId, factor) =>
-        Seq.fill((factor * maxVisitCountsPerPerson).toInt + 1)(personId)
+    val regionsDs: Dataset[Long] = regions.map(_.id)
+      .toDS()
+    regionsDs.flatMap { regionId =>
+      val beginPersonId = minPersonId + regionId * personCountPerRegion
+      val endPersonId = minPersonId + (regionId + 1) * personCountPerRegion
+      (beginPersonId until endPersonId)
+        .map(personId => (personId, regionId))
+    }
+      .toDF("id", "home_region_id")
+  }
+
+  private def writePersons(persons: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
+    persons
+      .write
+      .partitionBy("home_region_id")
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/persons_sample")
+  }
+
+  private def withVisits(persons: DataFrame)(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
+    persons
+      .select(
+        col("id"),
+        col("home_region_id"),
+        rand(0L) as "factor"
+      )
+      .as[(Long, Long, Double)]
+      .flatMap { case (personId, regionId, factor) =>
+        Seq.fill((factor * maxVisitCountsPerPerson).toInt + 1)((personId, regionId))
       }
-      .toDF("person_id")
+      .toDF("person_id", "region_id")
+
+  }
+
+  private def withGeoLocations(input: DataFrame): DataFrame = {
+    input
+      .withColumn("region", regionUdf(col("region_id")))
+      .withColumn("latitude_factor", randn(0))
+      .withColumn("longitude_factor", randn(0))
+      .withColumn(
+        "latitude",
+        expr("region.minLatitude + (region.maxLatitude - region.minLatitude) * latitude_factor") cast DoubleType
+      )
+      .withColumn(
+        "longitude",
+        expr("region.minLongitude + (region.maxLongitude - region.minLongitude) * longitude_factor") cast DoubleType
+      )
+      .drop(
+        "region",
+        "latitude_factor",
+        "longitude_factor"
+      )
   }
 
   private def withTimestamps(input: DataFrame): DataFrame = {
@@ -70,32 +128,6 @@ class LocationVisitsSampleGenerator(
           format_string("%04d", year(col("timestamp"))),
           format_string("%02d", month(col("timestamp")))
         )
-      )
-  }
-
-  private def withGeoLocations(input: DataFrame): DataFrame = {
-    val regionUdf = udf { regionId: Long =>
-      regions.find(_.id == regionId)
-        .get
-    }
-
-    input
-      .withColumn("region_id", rand(0L) * regionCount cast IntegerType)
-      .withColumn("region", regionUdf(col("region_id")))
-      .withColumn("latitude_factor", randn(0))
-      .withColumn("longitude_factor", randn(0))
-      .withColumn(
-        "latitude",
-        expr("region.minLatitude + (region.maxLatitude - region.minLatitude) * latitude_factor") cast DoubleType
-      )
-      .withColumn(
-        "longitude",
-        expr("region.minLongitude + (region.maxLongitude - region.minLongitude) * longitude_factor") cast DoubleType
-      )
-      .drop(
-        "region",
-        "latitude_factor",
-        "longitude_factor"
       )
   }
 
@@ -125,6 +157,29 @@ class LocationVisitsSampleGenerator(
       .show(false)
     println("Location visits sample:")
     locationVisits.show(false)
+  }
+
+  private def assertLocationVisitsCorrect(locationVisits: DataFrame): Unit = {
+    val extLocationVisits = locationVisits
+      .withColumn("region", regionUdf(col("region_id")))
+
+    val wrongLocationLatitudes = extLocationVisits
+      .where(expr("latitude < region.minLatitude or latitude > region.maxLatitude"))
+    val wrongLocationLatitudesCount = wrongLocationLatitudes.count()
+    if (wrongLocationLatitudesCount > 0) {
+      println(s"$wrongLocationLatitudesCount locations have latitudes out of range for their regions")
+      wrongLocationLatitudes.show(false)
+      throw new AssertionError("Wrong location visits sample")
+    }
+
+    val wrongLocationLongitudes = extLocationVisits
+      .where(expr("longitude < region.minLongitude or longitude > region.maxLongitude"))
+    val wrongLocationLongitudesCount = wrongLocationLongitudes.count()
+    if (wrongLocationLongitudesCount > 0) {
+      println(s"$wrongLocationLongitudesCount locations have longitudes out of range for their regions")
+      wrongLocationLongitudes.show(false)
+      throw new AssertionError("Wrong location visits sample")
+    }
   }
 
   private def writeLocationVisits(locationVisits: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
