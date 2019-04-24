@@ -137,16 +137,35 @@ class LocationVisitsSampleGenerator(
     locationVisits
       .select(min("timestamp"), max("timestamp"))
       .show(false)
+
     println("Location visit counts by regions:")
     locationVisits
       .groupBy("region_id")
       .count()
       .show(false)
+
+    println("Per-region locations min/max/average:")
+    locationVisits
+      .groupBy("region_id")
+      .agg(
+        min(col("latitude")),
+        max(col("latitude")),
+        avg(col("latitude"))
+      ).show(false)
+    locationVisits
+      .groupBy("region_id")
+      .agg(
+        min(col("longitude")),
+        max(col("longitude")),
+        avg(col("longitude"))
+      ).show(false)
+
     val visitorsCount = locationVisits
       .select("person_id")
       .distinct()
       .count()
     println(s"Visitors total count: $visitorsCount")
+
     val topN = 10
     println(s"Top $topN visitors:")
     locationVisits
@@ -155,6 +174,7 @@ class LocationVisitsSampleGenerator(
       .orderBy(col("count").desc)
       .limit(topN)
       .show(false)
+
     println("Location visits sample:")
     locationVisits.show(false)
   }
