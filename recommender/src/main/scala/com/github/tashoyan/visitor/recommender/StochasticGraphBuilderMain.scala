@@ -89,7 +89,6 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     stochasticGraph
   }
 
-  //TODO How to partition the stochastic graph?
   private def writeStochasticGraph(fileName: String, graph: DataFrame): Unit = {
     graph.write
       .mode(SaveMode.Overwrite)

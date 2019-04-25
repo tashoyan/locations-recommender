@@ -44,6 +44,7 @@ class StochasticRecommender(
     val targetVertexes = stochasticEdges.select(col("target_id") as "id")
     (sourceVertexes union targetVertexes)
       .distinct()
+      .repartition(col("id"))
       .cache()
   }
 
