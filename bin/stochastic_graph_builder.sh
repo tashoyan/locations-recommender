@@ -25,4 +25,6 @@ spark-submit \
 --conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=file://$log_config_file" \
 --class com.github.tashoyan.visitor.recommender.StochasticGraphBuilderMain \
 "$jar_file" \
---samples-dir "$samples_dir"
+--samples-dir "$samples_dir" \
+--beta-person-place 0.01 \
+--beta-person-category 0.99

@@ -5,10 +5,8 @@ import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
 
-  val betaPlacePlace: Double = 1.0
-  val betaCategoryPlace: Double = 1.0
-  val betaPersonPlace: Double = 0.5
-  val betaPersonCategory: Double = 0.5
+  private val betaPlacePlace: Double = 1.0
+  private val betaCategoryPlace: Double = 1.0
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, StochasticGraphBuilderConfig()) match {
@@ -20,6 +18,8 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
   private def doMain(implicit config: StochasticGraphBuilderConfig): Unit = {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
+
+    Console.out.println(s"Actual configuration: $config")
 
     val locationVisits = spark.read
       .parquet(s"${config.samplesDir}/location_visits_sample")
@@ -68,7 +68,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
       .where(whereCondition)
   }
 
-  private def generateStochasticGraph(placeVisits: DataFrame): DataFrame = {
+  private def generateStochasticGraph(placeVisits: DataFrame)(implicit config: StochasticGraphBuilderConfig): DataFrame = {
     val placeSimilarPlaceEdges = PlaceSimilarPlace.calcPlaceSimilarPlaceEdges(placeVisits)
     val categorySelectedPlaceEdges = CategorySelectedPlace.calcCategorySelectedPlaceEdges(placeVisits)
     val personLikesPlaceEdges = PersonLikesPlace.calcPersonLikesPlaceEdges(placeVisits)
@@ -82,8 +82,8 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     val betas = Seq(
       betaPlacePlace,
       betaCategoryPlace,
-      betaPersonPlace,
-      betaPersonCategory
+      config.betaPersonPlace,
+      config.betaPersonCategory
     )
     val stochasticGraph = StochasticGraphBuilder.buildWithBalancedWeights(betas, allEdges)
     stochasticGraph
