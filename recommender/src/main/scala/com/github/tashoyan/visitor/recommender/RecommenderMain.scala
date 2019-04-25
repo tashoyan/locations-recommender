@@ -1,6 +1,6 @@
 package com.github.tashoyan.visitor.recommender
 
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{broadcast, col}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.io.StdIn
@@ -120,8 +120,8 @@ object RecommenderMain extends RecommenderArgParser {
     val targetRegionId = recommenderTarget.targetRegionId
     val targetRegionPlaces = places
       .where(col("region_id") === targetRegionId)
-    val recommendedPlaces = recommendations
-      .join(targetRegionPlaces, "id")
+    val recommendedPlaces = targetRegionPlaces
+      .join(broadcast(recommendations), "id")
       .orderBy(col("probability").desc)
       .limit(config.maxRecommendations)
 
