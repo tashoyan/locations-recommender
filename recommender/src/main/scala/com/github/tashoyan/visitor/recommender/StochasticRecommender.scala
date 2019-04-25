@@ -115,7 +115,10 @@ class StochasticRecommender(
       .cache()
     val stationaryX = step(x0, u, 0)
     val recommendedVertexes = stationaryX
-      .where(col("id") =!= vertexId)
+      .where(
+        col("id") =!= vertexId and
+          col("probability") > 0
+      )
       .orderBy(col("probability").desc)
     recommendedVertexes
   }
