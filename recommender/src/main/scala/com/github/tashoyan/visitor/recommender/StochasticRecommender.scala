@@ -129,12 +129,13 @@ class StochasticRecommender(
   }
 
   private def isConverged(x: DataFrame, nextX: DataFrame): Boolean = {
-    val diffSquared = nextX
+    val diffSquaredDf = nextX
       .withColumnRenamed("probability", "next_probability")
       .join(x, "id")
       .select(col("next_probability") - col("probability") as "diff")
       .select(col("diff") * col("diff") as "diff_squared")
       .as[Double]
+    val diffSquared = diffSquaredDf
       .rdd
       .sum()
     diffSquared <= epsilonSquared
