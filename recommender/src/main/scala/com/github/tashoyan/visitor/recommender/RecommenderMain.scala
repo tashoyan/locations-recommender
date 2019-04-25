@@ -130,18 +130,11 @@ object RecommenderMain extends RecommenderArgParser {
   }
 
   private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: RecommenderConfig): DataFrame = {
-    val stochasticGraphFile = generateGraphFileName(regionIds)
+    val stochasticGraphFile = DataSamples.generateGraphFileName(regionIds, config.samplesDir)
     Console.out.println(s"Loading stochastic graph of visited places from $stochasticGraphFile")
     val stochasticGraph = spark.read
       .parquet(stochasticGraphFile)
     stochasticGraph
-  }
-
-  //TODO Extract to a common module and remove the duplication with StochasticGraphBuilderMain
-  private def generateGraphFileName(regionIds: Seq[Long])(implicit config: RecommenderConfig): String = {
-    regionIds
-      .map(regId => s"region$regId")
-      .mkString(s"${config.samplesDir}/stochastic_graph_", "_", "")
   }
 
   case class RecommenderTarget(

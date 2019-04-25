@@ -52,7 +52,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
 
     val regionStochasticGraphs = (perRegionPlaceVisits ++ pairwiseRegionPlaceVisits)
       .map { case (regIds, regPlaceVisits) =>
-        (generateGraphFileName(regIds), generateStochasticGraph(regPlaceVisits))
+        (DataSamples.generateGraphFileName(regIds, config.samplesDir), generateStochasticGraph(regPlaceVisits))
       }
     regionStochasticGraphs.foreach { case (fileName, graph) =>
       Console.out.println(s"Writing stochastic graph : $fileName")
@@ -87,12 +87,6 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     )
     val stochasticGraph = StochasticGraphBuilder.buildWithBalancedWeights(betas, allEdges)
     stochasticGraph
-  }
-
-  private def generateGraphFileName(regionIds: Seq[Long])(implicit config: StochasticGraphBuilderConfig): String = {
-    regionIds
-      .map(regId => s"region$regId")
-      .mkString(s"${config.samplesDir}/stochastic_graph_", "_", "")
   }
 
   //TODO How to partition the stochastic graph?
