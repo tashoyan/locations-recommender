@@ -5,7 +5,6 @@ import org.apache.spark.sql.DataFrame
 import org.scalatest.FunSuite
 import org.scalatest.Matchers._
 
-//TODO Remove println
 //TODO Tests on corner cases (zero epsilon, maxIterations)
 class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
 
@@ -52,9 +51,6 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       .as[(Long, Double)]
       .collect()
 
-    println("Recommendations:")
-    recommendations.foreach(println)
-
     val expectedRecommendations = Seq(
       (5L, 0.3502),
       (3L, 0.3298),
@@ -77,9 +73,6 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       .makeRecommendations(vertexId = 1L)
       .as[(Long, Double)]
       .collect()
-
-    println("Recommendations:")
-    recommendations.foreach(println)
 
     val expectedRecommendations = Seq(
       (3L, 0.408242766375),

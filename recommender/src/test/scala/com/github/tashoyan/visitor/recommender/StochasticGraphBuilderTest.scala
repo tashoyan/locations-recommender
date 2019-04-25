@@ -10,7 +10,6 @@ class StochasticGraphBuilderTest extends FunSuite with SparkTestHarness {
     val spark0 = spark
     import spark0.implicits._
 
-    //TODO Remove println
     val betas = Seq(
       0.4, //person - place
       0.6, //person - category
@@ -51,9 +50,6 @@ class StochasticGraphBuilderTest extends FunSuite with SparkTestHarness {
       placeCategoryEdges
     )
     val balancedWeightsGraph = StochasticGraphBuilder.buildWithBalancedWeights(betas, allEdges)
-    balancedWeightsGraph
-      .orderBy("source_id", "target_id")
-      .show(false)
     val balancedWeightSums = balancedWeightsGraph
       .groupBy("source_id")
       .agg(sum("balanced_weight") as "sum")
