@@ -55,46 +55,6 @@ class StochasticRecommender(
   /**
     * Make recommendations for the given vertex.
     *
-    * @param vertexId           Id of the vertex.
-    *                           The algorithm will find a list of vertexes,
-    *                           that are reachable with highest probability from this vertex.
-    * @param maxRecommendations How many recommended vertexes to return.
-    * @return Data frame of the most recommended vertexes for the given vertex: `(vertex_id, probability)`
-    *         Ordered by probability descending.
-    * @throws IllegalArgumentException No such vertex in the graph.
-    */
-  //TODO Remove
-  def makeRecommendations(vertexId: Long, maxRecommendations: Int): DataFrame = {
-    require(maxRecommendations >= 0, "max recommendations number must be non-negative")
-
-    if (isVertexExist(vertexId))
-      makeRecommendations0(vertexId, maxRecommendations)
-    else
-      throw new IllegalArgumentException(s"No such vertex in the graph: $vertexId")
-  }
-
-  private def isVertexExist(vertexId: Long): Boolean = {
-    vertexes
-      .where(col("id") === vertexId)
-      .count() > 0
-  }
-
-  //TODO Remove
-  private def makeRecommendations0(vertexId: Long, maxRecommendations: Int): DataFrame = {
-    val u = vertexes
-      .withColumn("u_probability", when(col("id") === vertexId, 1.0) otherwise 0.0)
-      .cache()
-    val stationaryX = step(x0, u, 0)
-    val recommendedVertexes = stationaryX
-      .where(col("id") =!= vertexId)
-      .orderBy(col("probability").desc)
-      .limit(maxRecommendations)
-    recommendedVertexes
-  }
-
-  /**
-    * Make recommendations for the given vertex.
-    *
     * @param vertexId Id of the vertex.
     *                 The algorithm will find a list of vertexes,
     *                 that are reachable with highest probability from this vertex.
@@ -107,6 +67,12 @@ class StochasticRecommender(
       makeRecommendations0(vertexId)
     else
       throw new IllegalArgumentException(s"No such vertex in the graph: $vertexId")
+  }
+
+  private def isVertexExist(vertexId: Long): Boolean = {
+    vertexes
+      .where(col("id") === vertexId)
+      .count() > 0
   }
 
   private def makeRecommendations0(vertexId: Long): DataFrame = {

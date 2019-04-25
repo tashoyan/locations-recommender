@@ -6,7 +6,7 @@ import org.scalatest.FunSuite
 import org.scalatest.Matchers._
 
 //TODO Remove println
-//TODO Tests on corner cases (zero epsilon, maxIterations, maxRecommendations)
+//TODO Tests on corner cases (zero epsilon, maxIterations)
 class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
 
   private val sample = Seq(
@@ -48,7 +48,7 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       maxIterations = 1
     )
     val recommendations = recommender
-      .makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+      .makeRecommendations(vertexId = 1L)
       .as[(Long, Double)]
       .collect()
 
@@ -74,7 +74,7 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       maxIterations = 1000
     )
     val recommendations = recommender
-      .makeRecommendations(vertexId = 1L, maxRecommendations = 10)
+      .makeRecommendations(vertexId = 1L)
       .as[(Long, Double)]
       .collect()
 
@@ -97,7 +97,7 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       maxIterations = 1000
     )
     intercept[IllegalArgumentException] {
-      recommender.makeRecommendations(vertexId = 100L, maxRecommendations = 10)
+      recommender.makeRecommendations(vertexId = 100L)
     }
   }
 
