@@ -26,5 +26,5 @@ spark-submit \
 --class com.github.tashoyan.visitor.recommender.StochasticGraphBuilderMain \
 "$jar_file" \
 --samples-dir "$samples_dir" \
---beta-person-place 0.01 \
---beta-person-category 0.99
+--beta-person-place 0.5 \
+--beta-person-category 0.5
