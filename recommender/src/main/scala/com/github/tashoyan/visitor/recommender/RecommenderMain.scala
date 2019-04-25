@@ -1,13 +1,11 @@
 package com.github.tashoyan.visitor.recommender
 
-import org.apache.spark.sql.functions.{broadcast, col}
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
-//TODO Refactor
-//scalastyle:off
 object RecommenderMain extends RecommenderArgParser {
 
   def main(args: Array[String]): Unit = {
@@ -17,7 +15,7 @@ object RecommenderMain extends RecommenderArgParser {
     }
   }
 
-  def getHomeRegion(personId: Long, persons: DataFrame)(implicit spark: SparkSession): Try[Long] = {
+  def getHomeRegionId(personId: Long, persons: DataFrame)(implicit spark: SparkSession): Try[Long] = {
     import spark.implicits._
 
     val regionIds = persons
@@ -43,50 +41,92 @@ object RecommenderMain extends RecommenderArgParser {
     Console.out.println(s"Loading persons from $personsFile")
     val persons = spark.read
       .parquet(personsFile)
+    val placesFile = s"${config.samplesDir}/places_sample"
+    Console.out.println(s"Loading places from $placesFile")
+    val places = spark.read
+      .parquet(placesFile)
+
+    Console.out.println(
+      """Enter ID of the person to be provided with recommendation and ID of the target region:
+        | <person ID>[ <region ID>]
+        |If region ID is omitted, then the home region of the person will be used.
+      """.stripMargin
+    )
 
     while (true) {
-      val personIdInput = Try(
-        StdIn.readLine("Enter ID of the person to be provided with recommendations (CTRL-C for exit):")
+      val input = Try(
+        StdIn.readLine("(CTRL-C for exit) <person ID>[ <region ID>]: ")
       )
-      val targetRegionIdInput = Try(
-        StdIn.readLine("Enter ID of the target region, leave blank for the person's home region (CTRL-C for exit):")
-      )
-      val input = for {
-        personId <- personIdInput.map(_.toLong)
-        regionIds <- calcRegionIdsForRecommender(personId, targetRegionIdInput, persons)
-      } yield (personId, regionIds)
-      input match {
-        case Success((personId, regionIds)) =>
-          printRecommendations(personId, regionIds)
+
+      val parsedInput = input map parseInput
+      val tryRecommenderTarget = parsedInput flatMap calcRecommenderTarget(persons)
+      val tryRecommendations = tryRecommenderTarget flatMap makeRecommendations
+
+      tryRecommendations match {
+        case Success(recommendations) =>
+          printRecommendations(tryRecommenderTarget.get, recommendations, places)
         case Failure(e) =>
-          Console.err.println("Failed to parse the input:")
           Console.err.println(e.getClass.getSimpleName + ": " + e.getMessage)
       }
     }
   }
 
-  private def calcRegionIdsForRecommender(personId: Long, regionIdInput: Try[String], persons: DataFrame)(implicit spark: SparkSession, config: RecommenderConfig): Try[Seq[Long]] = {
-    val homeRegion = getHomeRegion(personId, persons)
-    val emptyStrRegex = """\s*""".r
-    regionIdInput.flatMap {
-      case emptyStrRegex() =>
-        Console.out.println("Target region is not provided; will take the person's home region")
-        homeRegion
-          .map(Seq(_))
-      case regionIdStr =>
-        homeRegion
-          .map(Seq(_, regionIdStr.toLong))
+  private val inputRegex = """(\d+)\s*(\d+)?""".r
+
+  private def parseInput(input: String): (Long, Option[Long]) = {
+    input match {
+      case inputRegex(personIdStr, regionIdStr) =>
+        (personIdStr.toLong, Option(regionIdStr).map(_.toLong))
+      case _ =>
+        throw new IllegalArgumentException(s"Failed to parse input: $input")
     }
   }
 
-  private def printRecommendations(personId: Long, regionIds: Seq[Long])(implicit spark: SparkSession, config: RecommenderConfig): Unit = {
-    val stochasticGraph = loadStochasticGraph(regionIds)
+  private def calcRecommenderTarget(persons: DataFrame)(personIdInputRegionId: (Long, Option[Long]))(implicit spark: SparkSession): Try[RecommenderTarget] = {
+    val personId = personIdInputRegionId._1
+    val inputRegionId = personIdInputRegionId._2
+    val tryHomeRegionId = getHomeRegionId(personId, persons)
+    tryHomeRegionId map calcRecommenderTarget(personId, inputRegionId)
+  }
+
+  private def calcRecommenderTarget(personId: Long, inputRegionId: Option[Long])(homeRegionId: Long): RecommenderTarget = {
+    val targetRegionId = inputRegionId.getOrElse {
+      Console.out.println("Target region ID is not provided - falling back to the person's home region")
+      homeRegionId
+    }
+    val graphRegionIds =
+      if (targetRegionId == homeRegionId)
+        Seq(homeRegionId)
+      else
+        Seq(homeRegionId, targetRegionId)
+    RecommenderTarget(personId, targetRegionId, graphRegionIds)
+  }
+
+  private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: RecommenderConfig): Try[DataFrame] = {
+    val stochasticGraph = loadStochasticGraph(recommenderTarget.graphRegionIds)
     val recommender = new StochasticRecommender(
       stochasticGraph,
       config.epsilon,
       config.maxIterations
     )
-    printRecommendations(personId, recommender)
+    Try(recommender.makeRecommendations(recommenderTarget.personId))
+  }
+
+  private def printRecommendations(
+      recommenderTarget: RecommenderTarget,
+      recommendations: DataFrame,
+      places: DataFrame
+  )(implicit config: RecommenderConfig): Unit = {
+    val targetRegionId = recommenderTarget.targetRegionId
+    val targetRegionPlaces = places
+      .where(col("region_id") === targetRegionId)
+    val recommendedPlaces = recommendations
+      .join(targetRegionPlaces, "id")
+      .orderBy(col("probability").desc)
+      .limit(config.maxRecommendations)
+
+    Console.out.println(s"Person ${recommenderTarget.personId} might want to visit in region $targetRegionId:")
+    recommendedPlaces.show(false)
   }
 
   private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: RecommenderConfig): DataFrame = {
@@ -104,28 +144,11 @@ object RecommenderMain extends RecommenderArgParser {
       .mkString(s"${config.samplesDir}/stochastic_graph_", "_", "")
   }
 
-  private def printRecommendations(personId: Long, recommender: StochasticRecommender)(implicit spark: SparkSession, config: RecommenderConfig): Unit = {
-    Try(recommender.makeRecommendations(personId, config.maxRecommendations)) match {
-      case Success(recommendations) =>
-        printRecommendations(personId, recommendations)
-      case Failure(e) =>
-        Console.err.println(s"Failed to get recommendations for person: $personId")
-        Console.err.println(e.getClass.getSimpleName + ": " + e.getMessage)
-    }
-  }
-
-  private def printRecommendations(personId: Long, recommendations: DataFrame)(implicit spark: SparkSession, config: RecommenderConfig): Unit = {
-    val placesFile = s"${config.samplesDir}/places_sample"
-    Console.out.println(s"Loading places from $placesFile")
-    val places = spark.read
-      .parquet(placesFile)
-
-    val recommendedPlaces = places
-      .join(broadcast(recommendations), "id")
-    Console.out.println(s"Person $personId might want to visit:")
-    recommendedPlaces
-      .orderBy(col("probability").desc)
-      .show(false)
-  }
+  case class RecommenderTarget(
+      personId: Long,
+      targetRegionId: Long,
+      graphRegionIds: Seq[Long]
+  )
 
 }
+
