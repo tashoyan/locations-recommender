@@ -65,6 +65,11 @@
                 <version>${spark.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-mllib_${compiler.scala.compat.version}</artifactId>
+                <version>${spark.version}</version>
+            </dependency>
+            <dependency>
                 <!-- Specify paranamer to avoid java.lang.ArrayIndexOutOfBoundsException: 10582-->
                 <groupId>com.thoughtworks.paranamer</groupId>
                 <artifactId>paranamer</artifactId>
