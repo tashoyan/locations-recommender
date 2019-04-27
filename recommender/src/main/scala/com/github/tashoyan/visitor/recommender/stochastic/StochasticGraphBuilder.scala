@@ -1,5 +1,8 @@
 package com.github.tashoyan.visitor.recommender.stochastic
 
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.col
+
 object StochasticGraphBuilder {
 
   def buildWithBalancedWeights(betas: Seq[Double], allEdges: Seq[DataFrame]): DataFrame = {

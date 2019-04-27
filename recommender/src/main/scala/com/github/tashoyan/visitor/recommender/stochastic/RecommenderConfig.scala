@@ -1,5 +1,7 @@
 package com.github.tashoyan.visitor.recommender.stochastic
 
+import com.github.tashoyan.visitor.recommender.stochastic.RecommenderConfig._
+
 case class RecommenderConfig(
     samplesDir: String = "",
     epsilon: Double = defaultEpsilon,
