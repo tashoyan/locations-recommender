@@ -1,8 +1,8 @@
-package com.github.tashoyan.visitor.recommender
+package com.github.tashoyan.visitor.recommender.stochastic
 
 import com.github.tashoyan.visitor.test.SparkTestHarness
-import org.scalatest.FunSuite
 import org.apache.spark.sql.functions.sum
+import org.scalatest.FunSuite
 
 class StochasticGraphBuilderTest extends FunSuite with SparkTestHarness {
 

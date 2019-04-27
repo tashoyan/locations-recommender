@@ -1,6 +1,5 @@
-package com.github.tashoyan.visitor.recommender
+package com.github.tashoyan.visitor.recommender.stochastic
 
-import com.github.tashoyan.visitor.recommender.RecommenderConfig._
 import scopt.OptionParser
 
 trait RecommenderArgParser {

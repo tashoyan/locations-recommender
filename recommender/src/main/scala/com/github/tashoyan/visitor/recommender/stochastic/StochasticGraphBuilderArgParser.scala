@@ -1,4 +1,4 @@
-package com.github.tashoyan.visitor.recommender
+package com.github.tashoyan.visitor.recommender.stochastic
 
 import scopt.OptionParser
 

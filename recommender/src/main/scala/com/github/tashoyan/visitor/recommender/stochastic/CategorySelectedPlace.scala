@@ -1,9 +1,8 @@
-package com.github.tashoyan.visitor.recommender
+package com.github.tashoyan.visitor.recommender.stochastic
 
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, count, rank, sum}
-import org.apache.spark.sql.types.DoubleType
 
 object CategorySelectedPlace {
 

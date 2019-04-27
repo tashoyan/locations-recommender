@@ -1,7 +1,4 @@
-package com.github.tashoyan.visitor.recommender
-
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.col
+package com.github.tashoyan.visitor.recommender.stochastic
 
 object StochasticGraphBuilder {
 

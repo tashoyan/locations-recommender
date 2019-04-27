@@ -1,6 +1,4 @@
-package com.github.tashoyan.visitor.recommender
-
-import com.github.tashoyan.visitor.recommender.RecommenderConfig._
+package com.github.tashoyan.visitor.recommender.stochastic
 
 case class RecommenderConfig(
     samplesDir: String = "",

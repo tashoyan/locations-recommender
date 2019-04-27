@@ -1,5 +1,6 @@
-package com.github.tashoyan.visitor.recommender
+package com.github.tashoyan.visitor.recommender.stochastic
 
+import com.github.tashoyan.visitor.recommender.{DataUtils, PlaceVisits}
 import org.apache.spark.sql.functions.{col, max, min}
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 

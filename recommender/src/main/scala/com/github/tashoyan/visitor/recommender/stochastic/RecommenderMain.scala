@@ -1,5 +1,6 @@
-package com.github.tashoyan.visitor.recommender
+package com.github.tashoyan.visitor.recommender.stochastic
 
+import com.github.tashoyan.visitor.recommender.DataUtils
 import org.apache.spark.sql.functions.{broadcast, col}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -144,4 +145,3 @@ object RecommenderMain extends RecommenderArgParser {
   )
 
 }
-
