@@ -1,11 +1,11 @@
 package com.github.tashoyan.visitor.recommender.stochastic
 
-import com.github.tashoyan.visitor.recommender.stochastic.RecommenderConfig._
+import com.github.tashoyan.visitor.recommender.stochastic.StochasticRecommenderConfig._
 import scopt.OptionParser
 
-trait RecommenderArgParser {
+trait StochasticRecommenderArgParser {
 
-  val parser: OptionParser[RecommenderConfig] = new OptionParser[RecommenderConfig]("recommender") {
+  val parser: OptionParser[StochasticRecommenderConfig] = new OptionParser[StochasticRecommenderConfig]("recommender") {
     head("Recommender")
 
     opt[String]("samples-dir")

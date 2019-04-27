@@ -7,10 +7,10 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
-object RecommenderMain extends RecommenderArgParser {
+object StochasticRecommenderMain extends StochasticRecommenderArgParser {
 
   def main(args: Array[String]): Unit = {
-    parser.parse(args, RecommenderConfig()) match {
+    parser.parse(args, StochasticRecommenderConfig()) match {
       case Some(config) => doMain(config)
       case None => sys.exit(1)
     }
@@ -32,7 +32,7 @@ object RecommenderMain extends RecommenderArgParser {
     )
   }
 
-  private def doMain(implicit config: RecommenderConfig): Unit = {
+  private def doMain(implicit config: StochasticRecommenderConfig): Unit = {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
 
@@ -103,7 +103,7 @@ object RecommenderMain extends RecommenderArgParser {
     RecommenderTarget(personId, targetRegionId, graphRegionIds)
   }
 
-  private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: RecommenderConfig): Try[DataFrame] = {
+  private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: StochasticRecommenderConfig): Try[DataFrame] = {
     val stochasticGraph = loadStochasticGraph(recommenderTarget.graphRegionIds)
     val recommender = new StochasticRecommender(
       stochasticGraph,
@@ -117,7 +117,7 @@ object RecommenderMain extends RecommenderArgParser {
       recommenderTarget: RecommenderTarget,
       recommendations: DataFrame,
       places: DataFrame
-  )(implicit config: RecommenderConfig): Unit = {
+  )(implicit config: StochasticRecommenderConfig): Unit = {
     val targetRegionId = recommenderTarget.targetRegionId
     val targetRegionPlaces = places
       .where(col("region_id") === targetRegionId)
@@ -130,7 +130,7 @@ object RecommenderMain extends RecommenderArgParser {
     recommendedPlaces.show(false)
   }
 
-  private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: RecommenderConfig): DataFrame = {
+  private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: StochasticRecommenderConfig): DataFrame = {
     val stochasticGraphFile = DataUtils.generateGraphFileName(regionIds, config.samplesDir)
     Console.out.println(s"Loading stochastic graph of visited places from $stochasticGraphFile")
     val stochasticGraph = spark.read
