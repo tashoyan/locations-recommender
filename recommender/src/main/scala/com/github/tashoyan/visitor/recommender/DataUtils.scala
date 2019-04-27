@@ -1,6 +1,6 @@
 package com.github.tashoyan.visitor.recommender
 
-object DataSamples {
+object DataUtils {
 
   def generateGraphFileName(regionIds: Seq[Long], dirPath: String): String = {
     regionIds

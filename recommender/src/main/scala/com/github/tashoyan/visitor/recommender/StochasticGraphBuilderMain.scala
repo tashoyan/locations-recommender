@@ -52,7 +52,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
 
     val regionStochasticGraphs = (perRegionPlaceVisits ++ pairwiseRegionPlaceVisits)
       .map { case (regIds, regPlaceVisits) =>
-        (DataSamples.generateGraphFileName(regIds, config.samplesDir), generateStochasticGraph(regPlaceVisits))
+        (DataUtils.generateGraphFileName(regIds, config.samplesDir), generateStochasticGraph(regPlaceVisits))
       }
     regionStochasticGraphs.foreach { case (fileName, graph) =>
       Console.out.println(s"Writing stochastic graph : $fileName")

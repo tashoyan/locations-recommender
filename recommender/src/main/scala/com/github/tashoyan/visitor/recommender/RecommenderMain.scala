@@ -130,7 +130,7 @@ object RecommenderMain extends RecommenderArgParser {
   }
 
   private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: RecommenderConfig): DataFrame = {
-    val stochasticGraphFile = DataSamples.generateGraphFileName(regionIds, config.samplesDir)
+    val stochasticGraphFile = DataUtils.generateGraphFileName(regionIds, config.samplesDir)
     Console.out.println(s"Loading stochastic graph of visited places from $stochasticGraphFile")
     val stochasticGraph = spark.read
       .parquet(stochasticGraphFile)
