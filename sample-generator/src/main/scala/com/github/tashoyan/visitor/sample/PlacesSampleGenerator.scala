@@ -34,7 +34,7 @@ class PlacesSampleGenerator(
 
     placeCategories
       .zipWithIndex
-      .map { case (category, categoryIdx) => (category, minCategoryId + categoryIdx) }
+      .map { case (category, categoryIdx) => (category, minCategoryId + categoryIdx.toLong) }
       .toDF("category", "category_id")
   }
 
@@ -114,7 +114,7 @@ class PlacesSampleGenerator(
   private def writePlaces(places: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
     places
       .write
-      .partitionBy("region_id", "category_id")
+      .partitionBy("region_id")
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/places_sample")
   }
