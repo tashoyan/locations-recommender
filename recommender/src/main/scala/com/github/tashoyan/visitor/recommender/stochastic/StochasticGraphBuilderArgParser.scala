@@ -17,9 +17,6 @@ trait StochasticGraphBuilderArgParser {
       }
       .text("Samples directory to put the generated samples")
 
-    help("help")
-    version("version")
-
     opt[Double]("beta-person-place")
       .required()
       .valueName("<value>")
