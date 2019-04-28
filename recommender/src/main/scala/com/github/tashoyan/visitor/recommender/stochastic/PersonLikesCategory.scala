@@ -7,7 +7,7 @@ import org.apache.spark.sql.types.DoubleType
 
 object PersonLikesCategory {
 
-  val visitedCategoriesTopN: Int = 100
+  private val visitedCategoriesTopN: Int = 100
 
   def calcPersonLikesCategoryEdges(placeVisits: DataFrame): DataFrame = {
     val personVisitCategoryCounts = placeVisits

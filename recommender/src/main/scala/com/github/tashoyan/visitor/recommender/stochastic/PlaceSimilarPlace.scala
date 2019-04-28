@@ -10,10 +10,10 @@ import org.apache.spark.sql.types.DoubleType
 
 object PlaceSimilarPlace {
 
-  val placeSimilarityIntervalDays: Long = 7L
-  val placeSimilarityIntervalMillis: Long = TimeUnit.DAYS.toMillis(placeSimilarityIntervalDays)
+  private val placeSimilarityIntervalDays: Long = 7L
+  private val placeSimilarityIntervalMillis: Long = TimeUnit.DAYS.toMillis(placeSimilarityIntervalDays)
 
-  val similarPlacesTopN: Int = 50
+  private val similarPlacesTopN: Int = 50
 
   def calcPlaceSimilarPlaceEdges(placeVisits: DataFrame): DataFrame = {
     val thatPlaceVisits = placeVisits

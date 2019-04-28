@@ -7,7 +7,7 @@ import org.apache.spark.sql.types.DoubleType
 
 object CategorySelectedPlace {
 
-  val selectedPlacesTopN: Int = 100
+  private val selectedPlacesTopN: Int = 100
 
   def calcCategorySelectedPlaceEdges(placeVisits: DataFrame): DataFrame = {
     val placeCounts = placeVisits
