@@ -39,6 +39,16 @@ trait SimilarPersonsBuilderArgParser {
       .text("Coefficient for category-based person similarity." +
         " Sum of place-based and category-based coefficients must be 1.0")
 
+    opt[Int]("k-nearest")
+      .required()
+      .valueName("<value>")
+      .action((value, conf) => conf.copy(kNearest = value))
+      .validate { value =>
+        if (value <= 0) failure("K nearest must be positive")
+        else success
+      }
+      .text("How many nearest (most similar) persons to consider")
+
     checkConfig { config =>
       if (config.alphaPlace + config.alphaCategory != 1.0)
         failure(

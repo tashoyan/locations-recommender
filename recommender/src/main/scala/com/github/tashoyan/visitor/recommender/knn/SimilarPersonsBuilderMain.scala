@@ -29,6 +29,10 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
     PlaceVisits.printPlaceVisits(placeVisits)
     //    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
 
+    val similarPersons = new SimilarPersonsBuilder(config.alphaPlace, config.alphaCategory, config.kNearest)
+      .calcSimilarPersons(placeVisits)
+    similarPersons.show(false)
+
     //TODO Complete
   }
 

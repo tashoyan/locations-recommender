@@ -27,4 +27,5 @@ spark-submit \
 "$jar_file" \
 --samples-dir "$samples_dir" \
 --alpha-place 0.5 \
---alpha-category 0.5
+--alpha-category 0.5 \
+--k-nearest 50
