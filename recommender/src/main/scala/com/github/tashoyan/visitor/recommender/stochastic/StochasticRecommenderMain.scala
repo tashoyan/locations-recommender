@@ -17,38 +17,14 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser {
     }
   }
 
-  def getHomeRegionId(personId: Long, persons: DataFrame)(implicit spark: SparkSession): Try[Long] = {
-    import spark.implicits._
-
-    val regionIds = persons
-      .where(col("id") === personId)
-      .limit(1)
-      .select("home_region_id")
-      .as[Long]
-      .collect()
-    Try(
-      regionIds
-        .headOption
-        .getOrElse(throw new NoSuchElementException(s"Person not found: $personId"))
-    )
-  }
-
   private def doMain(implicit config: StochasticRecommenderConfig): Unit = {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
 
     Console.out.println(s"Actual configuration: $config")
 
-    val personsFile = s"${config.samplesDir}/persons_sample"
-    Console.out.println(s"Loading persons from $personsFile")
-    val persons = spark.read
-      .parquet(personsFile)
-      .withColumn("home_region_id", col("home_region_id") cast LongType)
-    val placesFile = s"${config.samplesDir}/places_sample"
-    Console.out.println(s"Loading places from $placesFile")
-    val places = spark.read
-      .parquet(placesFile)
-      .withColumn("region_id", col("region_id") cast LongType)
+    val persons = loadPersons
+    val places = loadPlaces
 
     Console.out.println(
       """Enter ID of the person to be provided with recommendation and ID of the target region:
@@ -75,6 +51,22 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser {
     }
   }
 
+  private def loadPersons(implicit spark: SparkSession, config: StochasticRecommenderConfig): DataFrame = {
+    val personsFile = s"${config.samplesDir}/persons_sample"
+    Console.out.println(s"Loading persons from $personsFile")
+    spark.read
+      .parquet(personsFile)
+      .withColumn("home_region_id", col("home_region_id") cast LongType)
+  }
+
+  private def loadPlaces(implicit spark: SparkSession, config: StochasticRecommenderConfig): DataFrame = {
+    val placesFile = s"${config.samplesDir}/places_sample"
+    Console.out.println(s"Loading places from $placesFile")
+    spark.read
+      .parquet(placesFile)
+      .withColumn("region_id", col("region_id") cast LongType)
+  }
+
   private val inputRegex = """(\d+)\s*(\d+)?""".r
 
   private def parseInput(input: String): (Long, Option[Long]) = {
@@ -84,6 +76,22 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser {
       case _ =>
         throw new IllegalArgumentException(s"Failed to parse input: $input")
     }
+  }
+
+  def getHomeRegionId(personId: Long, persons: DataFrame)(implicit spark: SparkSession): Try[Long] = {
+    import spark.implicits._
+
+    val regionIds = persons
+      .where(col("id") === personId)
+      .limit(1)
+      .select("home_region_id")
+      .as[Long]
+      .collect()
+    Try(
+      regionIds
+        .headOption
+        .getOrElse(throw new NoSuchElementException(s"Person not found: $personId"))
+    )
   }
 
   private def calcRecommenderTarget(persons: DataFrame)(personIdInputRegionId: (Long, Option[Long]))(implicit spark: SparkSession): Try[RecommenderTarget] = {
