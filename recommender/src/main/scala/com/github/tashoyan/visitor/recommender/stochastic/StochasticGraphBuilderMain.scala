@@ -1,7 +1,7 @@
 package com.github.tashoyan.visitor.recommender.stochastic
 
 import com.github.tashoyan.visitor.recommender.{DataUtils, PlaceVisits}
-import org.apache.spark.sql.functions.{col, max, min}
+import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
@@ -30,8 +30,8 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     Console.out.println("Generating place visits")
     val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
       .cache()
-    printPlaceVisits(placeVisits)
-    writePlaceVisits(placeVisits)
+    PlaceVisits.printPlaceVisits(placeVisits)
+    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
 
     generateRegionGraphs(placeVisits)
   }
@@ -94,41 +94,6 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
     graph.write
       .mode(SaveMode.Overwrite)
       .parquet(fileName)
-  }
-
-  def printPlaceVisits(placeVisits: DataFrame): Unit = {
-    println(s"Place visits count: ${placeVisits.count()}")
-    placeVisits
-      .select(min("timestamp"), max("timestamp"))
-      .show(false)
-    println("Place visits counts by region:")
-    placeVisits
-      .groupBy("region_id")
-      .count()
-      .show(false)
-    val visitorsCount = placeVisits
-      .select("person_id")
-      .distinct()
-      .count()
-    println(s"Visitors total count: $visitorsCount")
-    val topN = 10
-    println(s"Top $topN visitors:")
-    placeVisits
-      .groupBy("person_id")
-      .count()
-      .orderBy(col("count").desc)
-      .limit(topN)
-      .show(false)
-    println("Place visits sample:")
-    placeVisits.show(false)
-  }
-
-  def writePlaceVisits(placeVisits: DataFrame)(implicit config: StochasticGraphBuilderConfig): Unit = {
-    placeVisits
-      .write
-      .partitionBy("region_id", "year_month")
-      .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/place_visits")
   }
 
 }

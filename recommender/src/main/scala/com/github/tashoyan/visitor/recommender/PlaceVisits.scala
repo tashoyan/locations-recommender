@@ -1,7 +1,7 @@
 package com.github.tashoyan.visitor.recommender
 
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.{col, max, min, udf}
+import org.apache.spark.sql.{DataFrame, SaveMode}
 
 object PlaceVisits {
 
@@ -41,6 +41,41 @@ object PlaceVisits {
       )
     placeVisits
       .repartition(col("region_id"), col("year_month"))
+  }
+
+  def printPlaceVisits(placeVisits: DataFrame): Unit = {
+    println(s"Place visits count: ${placeVisits.count()}")
+    placeVisits
+      .select(min("timestamp"), max("timestamp"))
+      .show(false)
+    println("Place visits counts by region:")
+    placeVisits
+      .groupBy("region_id")
+      .count()
+      .show(false)
+    val visitorsCount = placeVisits
+      .select("person_id")
+      .distinct()
+      .count()
+    println(s"Visitors total count: $visitorsCount")
+    val topN = 10
+    println(s"Top $topN visitors:")
+    placeVisits
+      .groupBy("person_id")
+      .count()
+      .orderBy(col("count").desc)
+      .limit(topN)
+      .show(false)
+    println("Place visits sample:")
+    placeVisits.show(false)
+  }
+
+  def writePlaceVisits(placeVisits: DataFrame, samplesDir: String): Unit = {
+    placeVisits
+      .write
+      .partitionBy("region_id", "year_month")
+      .mode(SaveMode.Overwrite)
+      .parquet(s"$samplesDir/place_visits")
   }
 
 }
