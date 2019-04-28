@@ -11,7 +11,10 @@ class SimilarPersonsBuilder(
     alphaCategory: Double,
     kNearest: Int
 ) {
-  //TODO Validate args
+  require(alphaPlace > 0 && alphaPlace < 1.0, s"alphaPlace must be in the interval (0; 1): $alphaPlace")
+  require(alphaCategory > 0 && alphaCategory < 1.0, s"alphaCategory must be in the interval (0; 1): $alphaCategory")
+  require(alphaPlace + alphaCategory == 1.0, s"Sum of coefficients must be 1.0: alphaPlace: $alphaPlace, alphaCategory: $alphaCategory")
+  require(kNearest > 0, "K nearest must be positive")
 
   private val visitedPlacesTopN: Int = 100
   private val visitedCategoriesTopN: Int = 100
