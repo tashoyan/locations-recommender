@@ -1,10 +1,17 @@
 package com.github.tashoyan.visitor.recommender.knn
 
+import com.github.tashoyan.visitor.recommender.knn.SimilarPersonsBuilder._
+import org.apache.spark.ml.linalg.SparseVector
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.functions.{col, count, rank, row_number, first, lit}
+import org.apache.spark.sql.functions._
 
-class SimilarPersonsBuilder(alphaPlace: Double, alphaCategory: Double, kNearest: Int) {
+class SimilarPersonsBuilder(
+    alphaPlace: Double,
+    alphaCategory: Double,
+    kNearest: Int
+) {
+  //TODO Validate args
 
   private val visitedPlacesTopN: Int = 100
   private val visitedCategoriesTopN: Int = 100
@@ -12,10 +19,12 @@ class SimilarPersonsBuilder(alphaPlace: Double, alphaCategory: Double, kNearest:
   def calcSimilarPersons(placeVisits: DataFrame): DataFrame = {
     val placeRatings = calcPlaceRatings(placeVisits)
     val placeBasedVectors = calcPlaceBasedVectors(placeRatings)
+    placeBasedVectors.show(false)
     val placeBasedSimilarities = calcPlaceBasedSimilarities(placeBasedVectors)
 
     val categoryRatings = calcCategoryRatings(placeVisits)
     val categoryBasedVectors = calcCategoryBasedVectors(categoryRatings)
+    categoryBasedVectors.show(false)
     val categoryBasedSimilarities = calcCategoryBasedSimilarities(categoryBasedVectors)
 
     val similarities = calcSimilarities(placeBasedSimilarities, categoryBasedSimilarities)
@@ -23,23 +32,39 @@ class SimilarPersonsBuilder(alphaPlace: Double, alphaCategory: Double, kNearest:
   }
 
   private def calcPlaceRatings(placeVisits: DataFrame): DataFrame = {
-    val personVisitPlaceCounts = placeVisits
-      .groupBy("person_id", "place_id")
-      .agg(count("*") as "place_rating")
+    calcRatings(
+      placeVisits,
+      entityIdColumn = "place_id",
+      ratingColumn = "place_rating",
+      topN = visitedPlacesTopN
+    )
+  }
 
-    val window = Window.partitionBy("person_id")
-      .orderBy(col("place_rating").desc)
-    personVisitPlaceCounts
-      .withColumn("rank", rank() over window)
-      .where(col("rank") <= visitedPlacesTopN)
-      .drop("rank")
+  private def calcCategoryRatings(placeVisits: DataFrame): DataFrame = {
+    calcRatings(
+      placeVisits,
+      entityIdColumn = "category_id",
+      ratingColumn = "category_rating",
+      topN = visitedCategoriesTopN
+    )
   }
 
   private def calcPlaceBasedVectors(placeRatings: DataFrame): DataFrame = {
-    placeRatings
-      .groupBy("person_id")
-      //TODO Implement
-      .agg(first("place_rating") as "place_rating_vector")
+    calcRatingVectors(
+      placeRatings,
+      entityIdColumn = "place_id",
+      ratingColumn = "place_rating",
+      vectorColumn = "place_rating_vector"
+    )
+  }
+
+  private def calcCategoryBasedVectors(categoryRatings: DataFrame): DataFrame = {
+    calcRatingVectors(
+      categoryRatings,
+      entityIdColumn = "category_id",
+      ratingColumn = "category_rating",
+      vectorColumn = "category_rating_vector"
+    )
   }
 
   private def calcPlaceBasedSimilarities(placeBasedVectors: DataFrame): DataFrame = {
@@ -54,26 +79,6 @@ class SimilarPersonsBuilder(alphaPlace: Double, alphaCategory: Double, kNearest:
         "that_person_id",
         "place_based_similarity"
       )
-  }
-
-  private def calcCategoryRatings(placeVisits: DataFrame): DataFrame = {
-    val personVisitCategoryCounts = placeVisits
-      .groupBy("person_id", "category_id")
-      .agg(count("*") as "category_rating")
-
-    val window = Window.partitionBy("person_id")
-      .orderBy(col("category_rating").desc)
-    personVisitCategoryCounts
-      .withColumn("rank", rank() over window)
-      .where(col("rank") <= visitedCategoriesTopN)
-      .drop("rank")
-  }
-
-  private def calcCategoryBasedVectors(categoryRatings: DataFrame): DataFrame = {
-    categoryRatings
-      .groupBy("person_id")
-      //TODO Implement
-      .agg(first("category_rating") as "category_rating_vector")
   }
 
   private def calcCategoryBasedSimilarities(categoryBasedVectors: DataFrame): DataFrame = {
@@ -109,6 +114,68 @@ class SimilarPersonsBuilder(alphaPlace: Double, alphaCategory: Double, kNearest:
       .withColumn("rn", row_number() over window)
       .where(col("rn") <= kNearest)
       .drop("rn")
+  }
+
+}
+
+object SimilarPersonsBuilder {
+
+  private def calcRatings(
+      placeVisits: DataFrame,
+      entityIdColumn: String,
+      ratingColumn: String,
+      topN: Int
+  ): DataFrame = {
+    val personVisitCounts = placeVisits
+      .groupBy("person_id", entityIdColumn)
+      .agg(count("*") as ratingColumn)
+
+    val window = Window.partitionBy("person_id")
+      .orderBy(col(ratingColumn).desc)
+    personVisitCounts
+      .withColumn("rank", rank() over window)
+      .where(col("rank") <= topN)
+      .drop("rank")
+  }
+
+  private def calcRatingVectors(
+      ratings: DataFrame,
+      entityIdColumn: String,
+      ratingColumn: String,
+      vectorColumn: String
+  ): DataFrame = {
+    //TODO ratings must be cached
+    val maxId = ratings
+      .select(max(entityIdColumn))
+      .head()
+      .getLong(0)
+      .toInt
+    val vectorSize = maxId + 1
+
+    val createVectorUdf = udf { (indexes: Seq[Long], values: Seq[Long]) =>
+      new SparseVector(
+        size = vectorSize,
+        indices = indexes
+          .map(_.toInt)
+          .toArray,
+        values = values
+          .map(_.toDouble)
+          .toArray
+      )
+    }
+    //TODO It can be done more efficiently with a custom aggregation function: collect_sparse_vector()
+    val vectors = ratings
+      .orderBy("person_id", entityIdColumn)
+      .groupBy("person_id")
+      .agg(
+        collect_list(entityIdColumn) as "indexes",
+        collect_list(ratingColumn) as "values"
+      )
+      .select(
+        col("person_id"),
+        createVectorUdf(col("indexes"), col("values")) as vectorColumn
+      )
+    vectors
   }
 
 }

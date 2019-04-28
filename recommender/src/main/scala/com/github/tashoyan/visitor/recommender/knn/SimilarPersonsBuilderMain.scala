@@ -2,6 +2,8 @@ package com.github.tashoyan.visitor.recommender.knn
 
 import com.github.tashoyan.visitor.recommender.PlaceVisits
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.types.LongType
 
 object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
 
@@ -20,13 +22,15 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
 
     val locationVisits = spark.read
       .parquet(s"${config.samplesDir}/location_visits_sample")
+      .withColumn("region_id", col("region_id") cast LongType)
     val places = spark.read
       .parquet(s"${config.samplesDir}/places_sample")
+      .withColumn("region_id", col("region_id") cast LongType)
 
     Console.out.println("Generating place visits")
     val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
       .cache()
-    PlaceVisits.printPlaceVisits(placeVisits)
+    //    PlaceVisits.printPlaceVisits(placeVisits)
     //    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
 
     val similarPersons = new SimilarPersonsBuilder(config.alphaPlace, config.alphaCategory, config.kNearest)
