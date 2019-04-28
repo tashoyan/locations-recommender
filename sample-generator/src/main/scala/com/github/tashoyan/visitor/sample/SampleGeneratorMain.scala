@@ -2,7 +2,7 @@ package com.github.tashoyan.visitor.sample
 
 import org.apache.spark.sql.SparkSession
 
-object SampleGenerator extends SampleGeneratorArgParser {
+object SampleGeneratorMain extends SampleGeneratorArgParser {
 
   private val regions: Seq[Region] = Seq(
     Region(id = 0L, name = "Moscow", minLatitude = 55.623920, maxLatitude = 55.823685, minLongitude = 37.404277, maxLongitude = 37.795022),

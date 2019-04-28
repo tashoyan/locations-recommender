@@ -23,6 +23,6 @@ spark-submit \
 --properties-file "$spark_config_file" \
 --conf "spark.driver.extraJavaOptions=-Dlog4j.configuration=file://$log_config_file" \
 --conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=file://$log_config_file" \
---class com.github.tashoyan.visitor.sample.SampleGenerator \
+--class com.github.tashoyan.visitor.sample.SampleGeneratorMain \
 "$jar_file" \
 --samples-dir "$samples_dir"
