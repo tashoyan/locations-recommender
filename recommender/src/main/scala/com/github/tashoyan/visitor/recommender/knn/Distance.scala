@@ -1,7 +1,7 @@
 package com.github.tashoyan.visitor.recommender.knn
 
 import org.apache.spark.ml.linalg.SparseVector
-import org.apache.spark.ml.linalg.BLAS.dot
+//import org.apache.spark.ml.linalg.BLAS.dot
 
 object Distance {
 
