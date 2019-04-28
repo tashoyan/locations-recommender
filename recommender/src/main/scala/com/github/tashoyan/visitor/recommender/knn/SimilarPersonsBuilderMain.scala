@@ -1,9 +1,9 @@
 package com.github.tashoyan.visitor.recommender.knn
 
 import com.github.tashoyan.visitor.recommender.PlaceVisits
-import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.LongType
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
 
@@ -33,11 +33,17 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
     //    PlaceVisits.printPlaceVisits(placeVisits)
     //    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
 
+    Console.out.println("Generating similar persons")
     val similarPersons = new SimilarPersonsBuilder(config.alphaPlace, config.alphaCategory, config.kNearest)
       .calcSimilarPersons(placeVisits)
-    similarPersons.show(false)
+    writeSimilarPersons(similarPersons)
+  }
 
-    //TODO Complete
+  private def writeSimilarPersons(similarPersons: DataFrame)(implicit config: SimilarPersonsBuilderConfig): Unit = {
+    //TODO How to partition?
+    similarPersons.write
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/similar_persons")
   }
 
 }

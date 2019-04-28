@@ -1,5 +1,6 @@
 package com.github.tashoyan.visitor.recommender.knn
 
+import com.github.tashoyan.visitor.recommender.knn.Distance.cosineSimilarity
 import com.github.tashoyan.visitor.recommender.knn.SimilarPersonsBuilder._
 import org.apache.spark.ml.linalg.SparseVector
 import org.apache.spark.sql.DataFrame
@@ -17,20 +18,16 @@ class SimilarPersonsBuilder(
   require(kNearest > 0, "K nearest must be positive")
 
   private val visitedPlacesTopN: Int = 100
-  private val visitedCategoriesTopN: Int = 100
+  private val visitedCategoriesTopN: Int = 10
 
   def calcSimilarPersons(placeVisits: DataFrame): DataFrame = {
     val placeRatings = calcPlaceRatings(placeVisits)
-    val placeBasedVectors = calcPlaceBasedVectors(placeRatings)
-    placeBasedVectors.show(false)
-    val placeBasedSimilarities = calcPlaceBasedSimilarities(placeBasedVectors)
+    val placeBasedSimilarities = calcPlaceBasedSimilarities(placeRatings)
 
     val categoryRatings = calcCategoryRatings(placeVisits)
-    val categoryBasedVectors = calcCategoryBasedVectors(categoryRatings)
-    categoryBasedVectors.show(false)
-    val categoryBasedSimilarities = calcCategoryBasedSimilarities(categoryBasedVectors)
+    val categoryBasedSimilarities = calcCategoryBasedSimilarities(categoryRatings)
 
-    val similarities = calcSimilarities(placeBasedSimilarities, categoryBasedSimilarities)
+    val similarities = calcWeightedSimilarities(placeBasedSimilarities, categoryBasedSimilarities)
     keepKNearest(similarities)
   }
 
@@ -52,53 +49,25 @@ class SimilarPersonsBuilder(
     )
   }
 
-  private def calcPlaceBasedVectors(placeRatings: DataFrame): DataFrame = {
-    calcRatingVectors(
+  private def calcPlaceBasedSimilarities(placeRatings: DataFrame): DataFrame = {
+    calcSimilarities(
       placeRatings,
       entityIdColumn = "place_id",
       ratingColumn = "place_rating",
-      vectorColumn = "place_rating_vector"
+      similarityColumn = "place_based_similarity"
     )
   }
 
-  private def calcCategoryBasedVectors(categoryRatings: DataFrame): DataFrame = {
-    calcRatingVectors(
+  private def calcCategoryBasedSimilarities(categoryRatings: DataFrame): DataFrame = {
+    calcSimilarities(
       categoryRatings,
       entityIdColumn = "category_id",
       ratingColumn = "category_rating",
-      vectorColumn = "category_rating_vector"
+      similarityColumn = "category_based_similarity"
     )
   }
 
-  private def calcPlaceBasedSimilarities(placeBasedVectors: DataFrame): DataFrame = {
-    val thatVectors = placeBasedVectors
-      .withColumnRenamed("person_id", "that_person_id")
-    (placeBasedVectors crossJoin thatVectors)
-      //TODO Implement
-      .withColumn("place_based_similarity", lit(0.5))
-      .where(col("place_based_similarity") > 0)
-      .select(
-        "person_id",
-        "that_person_id",
-        "place_based_similarity"
-      )
-  }
-
-  private def calcCategoryBasedSimilarities(categoryBasedVectors: DataFrame): DataFrame = {
-    val thatVectors = categoryBasedVectors
-      .withColumnRenamed("person_id", "that_person_id")
-    (categoryBasedVectors crossJoin thatVectors)
-      //TODO Implement
-      .withColumn("category_based_similarity", lit(0.5))
-      .where(col("category_based_similarity") > 0)
-      .select(
-        "person_id",
-        "that_person_id",
-        "category_based_similarity"
-      )
-  }
-
-  private def calcSimilarities(placeBasedSimilarities: DataFrame, categoryBasedSimilarities: DataFrame): DataFrame = {
+  private def calcWeightedSimilarities(placeBasedSimilarities: DataFrame, categoryBasedSimilarities: DataFrame): DataFrame = {
     placeBasedSimilarities
       .join(categoryBasedSimilarities, Seq("person_id", "that_person_id"))
       .select(
@@ -147,8 +116,8 @@ object SimilarPersonsBuilder {
       ratingColumn: String,
       vectorColumn: String
   ): DataFrame = {
-    //TODO ratings must be cached
     val maxId = ratings
+      .cache()
       .select(max(entityIdColumn))
       .head()
       .getLong(0)
@@ -179,6 +148,36 @@ object SimilarPersonsBuilder {
         createVectorUdf(col("indexes"), col("values")) as vectorColumn
       )
     vectors
+  }
+
+  private def calcSimilarities(
+      ratings: DataFrame,
+      entityIdColumn: String,
+      ratingColumn: String,
+      similarityColumn: String
+  ): DataFrame = {
+    val ratingVectors = calcRatingVectors(
+      ratings,
+      entityIdColumn,
+      ratingColumn,
+      vectorColumn = "rating_vector"
+    )
+
+    val thatRatingVectors = ratingVectors
+      .withColumnRenamed("person_id", "that_person_id")
+      .withColumnRenamed("rating_vector", "that_rating_vector")
+    val similarityUdf = udf { (vector: SparseVector, thatVector: SparseVector) =>
+      cosineSimilarity(vector, thatVector)
+    }
+    (ratingVectors crossJoin thatRatingVectors)
+      .where(col("person_id") =!= col("that_person_id"))
+      .withColumn(similarityColumn, similarityUdf(col("rating_vector"), col("that_rating_vector")))
+      .where(col(similarityColumn) > 0)
+      .select(
+        "person_id",
+        "that_person_id",
+        similarityColumn
+      )
   }
 
 }
