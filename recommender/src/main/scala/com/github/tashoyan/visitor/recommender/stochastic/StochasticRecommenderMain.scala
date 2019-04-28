@@ -2,6 +2,7 @@ package com.github.tashoyan.visitor.recommender.stochastic
 
 import com.github.tashoyan.visitor.recommender.DataUtils
 import org.apache.spark.sql.functions.{broadcast, col}
+import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.io.StdIn
@@ -42,10 +43,12 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser {
     Console.out.println(s"Loading persons from $personsFile")
     val persons = spark.read
       .parquet(personsFile)
+      .withColumn("home_region_id", col("home_region_id") cast LongType)
     val placesFile = s"${config.samplesDir}/places_sample"
     Console.out.println(s"Loading places from $placesFile")
     val places = spark.read
       .parquet(placesFile)
+      .withColumn("region_id", col("region_id") cast LongType)
 
     Console.out.println(
       """Enter ID of the person to be provided with recommendation and ID of the target region:

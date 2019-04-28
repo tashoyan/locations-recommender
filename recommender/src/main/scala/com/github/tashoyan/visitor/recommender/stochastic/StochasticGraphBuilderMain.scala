@@ -2,6 +2,7 @@ package com.github.tashoyan.visitor.recommender.stochastic
 
 import com.github.tashoyan.visitor.recommender.{DataUtils, PlaceVisits}
 import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
@@ -24,8 +25,10 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
 
     val locationVisits = spark.read
       .parquet(s"${config.samplesDir}/location_visits_sample")
+      .withColumn("region_id", col("region_id") cast LongType)
     val places = spark.read
       .parquet(s"${config.samplesDir}/places_sample")
+      .withColumn("region_id", col("region_id") cast LongType)
 
     Console.out.println("Generating place visits")
     val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
