@@ -8,13 +8,13 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 
 class SimilarPersonsBuilder(
-    alphaPlace: Double,
-    alphaCategory: Double,
+    placeWeight: Double,
+    categoryWeight: Double,
     kNearest: Int
 ) {
-  require(alphaPlace > 0 && alphaPlace < 1.0, s"alphaPlace must be in the interval (0; 1): $alphaPlace")
-  require(alphaCategory > 0 && alphaCategory < 1.0, s"alphaCategory must be in the interval (0; 1): $alphaCategory")
-  require(alphaPlace + alphaCategory == 1.0, s"Sum of coefficients must be 1.0: alphaPlace: $alphaPlace, alphaCategory: $alphaCategory")
+  require(placeWeight > 0 && placeWeight < 1.0, s"Place weight must be in the interval (0; 1): $placeWeight")
+  require(categoryWeight > 0 && categoryWeight < 1.0, s"Category weight must be in the interval (0; 1): $categoryWeight")
+  require(placeWeight + categoryWeight == 1.0, s"Sum of weights must be 1.0: place: $placeWeight, category: $categoryWeight")
   require(kNearest > 0, "K nearest must be positive")
 
   private val visitedPlacesTopN: Int = 100
@@ -73,8 +73,8 @@ class SimilarPersonsBuilder(
       .select(
         col("person_id"),
         col("that_person_id"),
-        col("place_based_similarity") * alphaPlace +
-          col("category_based_similarity") * alphaCategory
+        col("place_based_similarity") * placeWeight +
+          col("category_based_similarity") * categoryWeight
           as "similarity"
       )
   }

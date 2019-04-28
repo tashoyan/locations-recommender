@@ -34,7 +34,7 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
     //    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
 
     Console.out.println("Generating similar persons")
-    val similarPersons = new SimilarPersonsBuilder(config.alphaPlace, config.alphaCategory, config.kNearest)
+    val similarPersons = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
       .calcSimilarPersons(placeVisits)
     writeSimilarPersons(similarPersons)
   }

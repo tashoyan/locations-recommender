@@ -26,6 +26,6 @@ spark-submit \
 --class com.github.tashoyan.visitor.recommender.knn.SimilarPersonsBuilderMain \
 "$jar_file" \
 --samples-dir "$samples_dir" \
---alpha-place 0.5 \
---alpha-category 0.5 \
+--place-weight 0.5 \
+--category-weight 0.5 \
 --k-nearest 50

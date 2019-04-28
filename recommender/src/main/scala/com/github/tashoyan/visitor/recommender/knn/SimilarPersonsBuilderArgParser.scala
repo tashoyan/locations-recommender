@@ -17,27 +17,27 @@ trait SimilarPersonsBuilderArgParser {
       }
       .text("Samples directory to put the generated samples")
 
-    opt[Double]("alpha-place")
+    opt[Double]("place-weight")
       .required()
       .valueName("<value>")
-      .action((value, conf) => conf.copy(alphaPlace = value))
+      .action((value, conf) => conf.copy(placeWeight = value))
       .validate { value =>
-        if (value <= 0 || value >= 1) failure("Coefficient must be in the interval (0; 1)")
+        if (value <= 0 || value >= 1) failure("Weight must be in the interval (0; 1)")
         else success
       }
-      .text("Coefficient for place-based person similarity." +
-        " Sum of place-based and category-based coefficients must be 1.0")
+      .text("Weight for place-based person similarity." +
+        " Sum of weights for place-based and category-based similarities must be 1.0")
 
-    opt[Double]("alpha-category")
+    opt[Double]("category-weight")
       .required()
       .valueName("<value>")
-      .action((value, conf) => conf.copy(alphaCategory = value))
+      .action((value, conf) => conf.copy(categoryWeight = value))
       .validate { value =>
-        if (value <= 0 || value >= 1) failure("Coefficient must be in the interval (0; 1)")
+        if (value <= 0 || value >= 1) failure("Weight must be in the interval (0; 1)")
         else success
       }
-      .text("Coefficient for category-based person similarity." +
-        " Sum of place-based and category-based coefficients must be 1.0")
+      .text("Weight for category-based person similarity." +
+        " Sum of weights for place-based and category-based similarities must be 1.0")
 
     opt[Int]("k-nearest")
       .required()
@@ -50,9 +50,9 @@ trait SimilarPersonsBuilderArgParser {
       .text("How many nearest (most similar) persons to consider")
 
     checkConfig { config =>
-      if (config.alphaPlace + config.alphaCategory != 1.0)
+      if (config.placeWeight + config.categoryWeight != 1.0)
         failure(
-          s"Sum of coefficients must be 1.0: for place-based similarity: ${config.alphaPlace}, for category-based similarity: ${config.alphaCategory}"
+          s"Sum of weights must be 1.0: for place-based similarity: ${config.placeWeight}, for category-based similarity: ${config.categoryWeight}"
         )
       else
         success
