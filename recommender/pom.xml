@@ -34,6 +34,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.scalanlp</groupId>
+            <artifactId>breeze_${compiler.scala.compat.version}</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
         </dependency>

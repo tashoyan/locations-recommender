@@ -1,20 +1,18 @@
 package com.github.tashoyan.visitor.recommender.knn
 
-import org.apache.spark.ml.linalg.SparseVector
-//import org.apache.spark.ml.linalg.BLAS.dot
+import breeze.linalg.SparseVector
 
 object Distance {
 
-  def cosineSimilarity(v1: SparseVector, v2: SparseVector): Double = {
-    ???
-    //Use BLAS.dot
+  def cosineSimilarity(vector1: SparseVector[Long], vector2: SparseVector[Long]): Double = {
+    (vector1 dot vector2) / (vectorLength(vector1) * vectorLength(vector2))
   }
 
-  def vectorLength(vector: SparseVector): Double = {
-    val sumSquared = vector.values
+  def vectorLength(vector: SparseVector[Long]): Double = {
+    val sumSquared = vector.data
       .map(v => v * v)
       .sum
-    math.sqrt(sumSquared)
+    math.sqrt(sumSquared.toDouble)
   }
 
 }

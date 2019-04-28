@@ -39,6 +39,7 @@
         <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
 
         <spark.version>2.4.0</spark.version>
+        <breeze.version>0.13.2</breeze.version>
         <paranamer.version>2.8</paranamer.version>
         <scopt.version>3.7.1</scopt.version>
         <commons-math3.version>3.6.1</commons-math3.version>
@@ -68,6 +69,11 @@
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-mllib-local_${compiler.scala.compat.version}</artifactId>
                 <version>${spark.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scalanlp</groupId>
+                <artifactId>breeze_${compiler.scala.compat.version}</artifactId>
+                <version>${breeze.version}</version>
             </dependency>
             <dependency>
                 <!-- Specify paranamer to avoid java.lang.ArrayIndexOutOfBoundsException: 10582-->
