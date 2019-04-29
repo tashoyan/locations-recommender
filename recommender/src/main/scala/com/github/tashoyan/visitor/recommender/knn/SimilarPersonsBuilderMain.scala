@@ -33,9 +33,14 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
     //    PlaceVisits.printPlaceVisits(placeVisits)
     //    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
 
+    Console.out.println("Generating place and category ratings")
+    val placeRatings = RatingsBuilder.calcPlaceRatings(placeVisits)
+    val categoryRatings = RatingsBuilder.calcCategoryRatings(placeVisits)
+
     Console.out.println("Generating similar persons")
-    val (similarPersons, placeRatings) = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
-      .calcSimilarPersonsAndPlaceRatings(placeVisits)
+    val similarPersonsBuilder = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
+    val similarPersons = similarPersonsBuilder.calcSimilarPersons(placeRatings, categoryRatings)
+
     writeSimilarPersons(similarPersons)
     writePlaceRatings(placeRatings)
   }

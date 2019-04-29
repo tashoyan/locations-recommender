@@ -17,37 +17,16 @@ class SimilarPersonsBuilder(
   require(placeWeight + categoryWeight == 1.0, s"Sum of weights must be 1.0: place: $placeWeight, category: $categoryWeight")
   require(kNearest > 0, "K nearest must be positive")
 
-  private val visitedPlacesTopN: Int = 100
-  private val visitedCategoriesTopN: Int = 10
-
-  def calcSimilarPersonsAndPlaceRatings(placeVisits: DataFrame): (DataFrame, DataFrame) = {
-    val placeRatings = calcPlaceRatings(placeVisits)
+  def calcSimilarPersons(
+      placeRatings: DataFrame,
+      categoryRatings: DataFrame
+  ): DataFrame = {
     val placeBasedSimilarities = calcPlaceBasedSimilarities(placeRatings)
-
-    val categoryRatings = calcCategoryRatings(placeVisits)
     val categoryBasedSimilarities = calcCategoryBasedSimilarities(categoryRatings)
 
     val similarities = calcWeightedSimilarities(placeBasedSimilarities, categoryBasedSimilarities)
     val similarPersons = keepKNearest(similarities)
-    (similarPersons, placeRatings)
-  }
-
-  private def calcPlaceRatings(placeVisits: DataFrame): DataFrame = {
-    calcRatings(
-      placeVisits,
-      entityIdColumn = "place_id",
-      ratingColumn = "place_rating",
-      topN = visitedPlacesTopN
-    )
-  }
-
-  private def calcCategoryRatings(placeVisits: DataFrame): DataFrame = {
-    calcRatings(
-      placeVisits,
-      entityIdColumn = "category_id",
-      ratingColumn = "category_rating",
-      topN = visitedCategoriesTopN
-    )
+    similarPersons
   }
 
   private def calcPlaceBasedSimilarities(placeRatings: DataFrame): DataFrame = {
@@ -92,24 +71,6 @@ class SimilarPersonsBuilder(
 }
 
 object SimilarPersonsBuilder {
-
-  private def calcRatings(
-      placeVisits: DataFrame,
-      entityIdColumn: String,
-      ratingColumn: String,
-      topN: Int
-  ): DataFrame = {
-    val personVisitCounts = placeVisits
-      .groupBy("person_id", entityIdColumn)
-      .agg(count("*") as ratingColumn)
-
-    val window = Window.partitionBy("person_id")
-      .orderBy(col(ratingColumn).desc)
-    personVisitCounts
-      .withColumn("rank", rank() over window)
-      .where(col("rank") <= topN)
-      .drop("rank")
-  }
 
   private def calcSimilarities(
       ratings: DataFrame,
