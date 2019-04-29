@@ -1,12 +1,13 @@
 package com.github.tashoyan.visitor.recommender.knn
 
-import org.apache.spark.sql.functions.col
+import com.github.tashoyan.visitor.recommender.RecommenderMainCommon
+import org.apache.spark.sql.functions.{broadcast, col}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.io.StdIn
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
-object KnnRecommenderMain extends KnnRecommenderArgParser {
+object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCommon {
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, KnnRecommenderConfig()) match {
@@ -21,6 +22,9 @@ object KnnRecommenderMain extends KnnRecommenderArgParser {
 
     Console.out.println(s"Actual configuration: $config")
 
+    val persons = loadPersons(config.samplesDir)
+    val places = loadPlaces(config.samplesDir)
+
     Console.out.println(
       """Enter ID of the person to be provided with recommendation and ID of the target region:
         | <person ID>[ <region ID>]
@@ -32,28 +36,49 @@ object KnnRecommenderMain extends KnnRecommenderArgParser {
       val input = Try(
         StdIn.readLine("(CTRL-C for exit) <person ID>[ <region ID>]: ")
       )
-      //TODO Complete
-      println(input)
-      val dummy = makeRecommendations(RecommenderTarget(0L, 0L))
-      dummy.show()
+
+      val parsedInput = input map parseInput
+      val tryRecommenderTarget = parsedInput flatMap calcRecommenderTarget(persons)
+      val tryRecommendations = tryRecommenderTarget flatMap makeRecommendations
+
+      tryRecommendations match {
+        case Success(recommendations) =>
+          printRecommendations(tryRecommenderTarget.get, recommendations, places)
+        case Failure(e) =>
+          Console.err.println(e.getClass.getSimpleName + ": " + e.getMessage)
+      }
     }
   }
 
-  private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
-    val similarPersons = loadSimilarPersons(recommenderTarget.personId)
+  private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: KnnRecommenderConfig): Try[DataFrame] = {
+    val similarPersons = loadSimilarPersons
     val placeRatings = loadPlaceRatings
-    //TODO Complete
-    similarPersons.show()
-    placeRatings.show()
-    ???
+    val recommender = new KnnRecommender(similarPersons, placeRatings)
+    Try(recommender.makeRecommendations(recommenderTarget.personId))
   }
 
-  private def loadSimilarPersons(personId: Long)(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
+  private def printRecommendations(
+      recommenderTarget: RecommenderTarget,
+      recommendations: DataFrame,
+      places: DataFrame
+  )(implicit config: KnnRecommenderConfig): Unit = {
+    val targetRegionId = recommenderTarget.targetRegionId
+    val targetRegionPlaces = places
+      .where(col("region_id") === targetRegionId)
+    val recommendedPlaces = targetRegionPlaces
+      .join(broadcast(recommendations), col("id") === col("place_id"))
+      .orderBy(col("estimated_rating").desc)
+      .limit(config.maxRecommendations)
+
+    Console.out.println(s"Person ${recommenderTarget.personId} might want to visit in region $targetRegionId:")
+    recommendedPlaces.show(false)
+  }
+
+  private def loadSimilarPersons(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
     val fileName = s"${config.samplesDir}/similar_persons"
-    Console.out.println(s"Loading similar persons of person $personId from $fileName")
+    Console.out.println(s"Loading similar persons from $fileName")
     spark.read
       .parquet(fileName)
-      .where(col("person_id") === personId)
   }
 
   private def loadPlaceRatings(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
@@ -63,8 +88,4 @@ object KnnRecommenderMain extends KnnRecommenderArgParser {
       .parquet(fileName)
   }
 
-  case class RecommenderTarget(
-      personId: Long,
-      targetRegionId: Long
-  )
 }
