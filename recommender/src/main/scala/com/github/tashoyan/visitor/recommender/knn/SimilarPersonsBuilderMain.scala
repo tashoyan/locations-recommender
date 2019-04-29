@@ -34,9 +34,10 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
     //    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
 
     Console.out.println("Generating similar persons")
-    val similarPersons = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
-      .calcSimilarPersons(placeVisits)
+    val (similarPersons, placeRatings) = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
+      .calcSimilarPersonsAndPlaceRatings(placeVisits)
     writeSimilarPersons(similarPersons)
+    writePlaceRatings(placeRatings)
   }
 
   private def writeSimilarPersons(similarPersons: DataFrame)(implicit config: SimilarPersonsBuilderConfig): Unit = {
@@ -44,6 +45,13 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
     similarPersons.write
       .mode(SaveMode.Overwrite)
       .parquet(s"${config.samplesDir}/similar_persons")
+  }
+
+  private def writePlaceRatings(placeRatings: DataFrame)(implicit config: SimilarPersonsBuilderConfig): Unit = {
+    //TODO How to partition?
+    placeRatings.write
+      .mode(SaveMode.Overwrite)
+      .parquet(s"${config.samplesDir}/place_ratings")
   }
 
 }

@@ -20,7 +20,7 @@ class SimilarPersonsBuilder(
   private val visitedPlacesTopN: Int = 100
   private val visitedCategoriesTopN: Int = 10
 
-  def calcSimilarPersons(placeVisits: DataFrame): DataFrame = {
+  def calcSimilarPersonsAndPlaceRatings(placeVisits: DataFrame): (DataFrame, DataFrame) = {
     val placeRatings = calcPlaceRatings(placeVisits)
     val placeBasedSimilarities = calcPlaceBasedSimilarities(placeRatings)
 
@@ -28,7 +28,8 @@ class SimilarPersonsBuilder(
     val categoryBasedSimilarities = calcCategoryBasedSimilarities(categoryRatings)
 
     val similarities = calcWeightedSimilarities(placeBasedSimilarities, categoryBasedSimilarities)
-    keepKNearest(similarities)
+    val similarPersons = keepKNearest(similarities)
+    (similarPersons, placeRatings)
   }
 
   private def calcPlaceRatings(placeVisits: DataFrame): DataFrame = {
