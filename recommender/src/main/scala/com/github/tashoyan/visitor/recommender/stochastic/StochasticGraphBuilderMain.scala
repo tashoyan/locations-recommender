@@ -3,9 +3,9 @@ package com.github.tashoyan.visitor.recommender.stochastic
 import com.github.tashoyan.visitor.recommender.{DataUtils, PlaceVisits}
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.LongType
-import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
-object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
+object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with PlaceVisits {
 
   private val betaPlacePlace: Double = 1.0
   private val betaCategoryPlace: Double = 1.0
@@ -31,30 +31,18 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
       .withColumn("region_id", col("region_id") cast LongType)
 
     Console.out.println("Generating place visits")
-    val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
+    val placeVisits = calcPlaceVisits(locationVisits, places)
       .cache()
-    PlaceVisits.printPlaceVisits(placeVisits)
-    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
+    printPlaceVisits(placeVisits)
+    writePlaceVisits(placeVisits, config.samplesDir)
 
     generateRegionGraphs(placeVisits)
   }
 
   private def generateRegionGraphs(placeVisits: DataFrame)(implicit spark: SparkSession, config: StochasticGraphBuilderConfig): Unit = {
-    import spark.implicits._
+    val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits)
 
-    val regionIds = placeVisits
-      .select("region_id")
-      .distinct()
-      .as[Long]
-      .collect()
-      .toSeq
-
-    val perRegionPlaceVisits = regionIds.
-      map(regionId => (Seq(regionId), extractRegionsPlaceVisits(Seq(regionId), placeVisits)))
-    val pairwiseRegionPlaceVisits = regionIds.combinations(2)
-      .map(regIds => (regIds.sorted, extractRegionsPlaceVisits(regIds, placeVisits)))
-
-    val regionStochasticGraphs = (perRegionPlaceVisits ++ pairwiseRegionPlaceVisits)
+    val regionStochasticGraphs = regionsPlaceVisits
       .map { case (regIds, regPlaceVisits) =>
         (DataUtils.generateGraphFileName(regIds, config.samplesDir), generateStochasticGraph(regPlaceVisits))
       }
@@ -62,14 +50,6 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser {
       Console.out.println(s"Writing stochastic graph : $fileName")
       writeStochasticGraph(fileName, graph)
     }
-  }
-
-  private def extractRegionsPlaceVisits(regionIds: Seq[Long], placeVisits: DataFrame): DataFrame = {
-    val whereCondition: Column = regionIds
-      .map(col("region_id") === _)
-      .reduce(_ or _)
-    placeVisits
-      .where(whereCondition)
   }
 
   private def generateStochasticGraph(placeVisits: DataFrame)(implicit config: StochasticGraphBuilderConfig): DataFrame = {

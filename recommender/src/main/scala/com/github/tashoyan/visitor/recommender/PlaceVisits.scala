@@ -1,13 +1,12 @@
 package com.github.tashoyan.visitor.recommender
 
+import com.github.tashoyan.visitor.recommender.PlaceVisits._
 import org.apache.spark.sql.functions.{col, max, min, udf}
-import org.apache.spark.sql.{DataFrame, SaveMode}
+import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
-object PlaceVisits {
+trait PlaceVisits {
 
-  val distanceAccuracyMeters: Double = 100
-
-  def calcPlaceVisits(locationVisits: DataFrame, places: DataFrame): DataFrame = {
+  protected def calcPlaceVisits(locationVisits: DataFrame, places: DataFrame): DataFrame = {
     val placeIsVisitedUdf = udf { (
       locationLatitude: Double,
       locationLongitude: Double,
@@ -43,7 +42,34 @@ object PlaceVisits {
       .repartition(col("region_id"), col("year_month"))
   }
 
-  def printPlaceVisits(placeVisits: DataFrame): Unit = {
+  protected def extractRegionsPlaceVisits(placeVisits: DataFrame)(implicit spark: SparkSession): Seq[(Seq[Long], DataFrame)] = {
+    val regionIds = extractRegionIds(placeVisits)
+    val regionIdsSeq: Seq[Seq[Long]] = regionIds.map(Seq(_)) ++
+      regionIds.combinations(2)
+    regionIdsSeq map extractRegionsPlaceVisits0(placeVisits)
+  }
+
+  private def extractRegionIds(placeVisits: DataFrame)(implicit spark: SparkSession): Seq[Long] = {
+    import spark.implicits._
+
+    placeVisits
+      .select("region_id")
+      .distinct()
+      .as[Long]
+      .collect()
+      .toSeq
+  }
+
+  private def extractRegionsPlaceVisits0(placeVisits: DataFrame)(regionIds: Seq[Long]): (Seq[Long], DataFrame) = {
+    val whereCondition: Column = regionIds
+      .map(col("region_id") === _)
+      .reduce(_ or _)
+    val regionsPlaceVisits = placeVisits
+      .where(whereCondition)
+    (regionIds, regionsPlaceVisits)
+  }
+
+  protected def printPlaceVisits(placeVisits: DataFrame): Unit = {
     println(s"Place visits count: ${placeVisits.count()}")
     placeVisits
       .select(min("timestamp"), max("timestamp"))
@@ -70,12 +96,18 @@ object PlaceVisits {
     placeVisits.show(false)
   }
 
-  def writePlaceVisits(placeVisits: DataFrame, samplesDir: String): Unit = {
+  protected def writePlaceVisits(placeVisits: DataFrame, samplesDir: String): Unit = {
     placeVisits
       .write
       .partitionBy("region_id", "year_month")
       .mode(SaveMode.Overwrite)
       .parquet(s"$samplesDir/place_visits")
   }
+
+}
+
+object PlaceVisits {
+
+  private val distanceAccuracyMeters: Double = 100
 
 }
