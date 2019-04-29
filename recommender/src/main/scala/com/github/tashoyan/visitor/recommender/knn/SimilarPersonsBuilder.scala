@@ -111,6 +111,37 @@ object SimilarPersonsBuilder {
       .drop("rank")
   }
 
+  private def calcSimilarities(
+      ratings: DataFrame,
+      entityIdColumn: String,
+      ratingColumn: String,
+      similarityColumn: String
+  ): DataFrame = {
+    val ratingVectors = calcRatingVectors(
+      ratings,
+      entityIdColumn,
+      ratingColumn,
+      vectorColumn = "rating_vector"
+    )
+      .cache()
+
+    val thatRatingVectors = ratingVectors
+      .withColumnRenamed("person_id", "that_person_id")
+      .withColumnRenamed("rating_vector", "that_rating_vector")
+    val similarityUdf = udf { (vector: SparseVector, thatVector: SparseVector) =>
+      cosineSimilarity(vector, thatVector)
+    }
+    (ratingVectors crossJoin thatRatingVectors)
+      .where(col("person_id") =!= col("that_person_id"))
+      .withColumn(similarityColumn, similarityUdf(col("rating_vector"), col("that_rating_vector")))
+      .where(col(similarityColumn) > 0)
+      .select(
+        "person_id",
+        "that_person_id",
+        similarityColumn
+      )
+  }
+
   private def calcRatingVectors(
       ratings: DataFrame,
       entityIdColumn: String,
@@ -149,36 +180,6 @@ object SimilarPersonsBuilder {
         createVectorUdf(col("indexes"), col("values")) as vectorColumn
       )
     vectors
-  }
-
-  private def calcSimilarities(
-      ratings: DataFrame,
-      entityIdColumn: String,
-      ratingColumn: String,
-      similarityColumn: String
-  ): DataFrame = {
-    val ratingVectors = calcRatingVectors(
-      ratings,
-      entityIdColumn,
-      ratingColumn,
-      vectorColumn = "rating_vector"
-    )
-
-    val thatRatingVectors = ratingVectors
-      .withColumnRenamed("person_id", "that_person_id")
-      .withColumnRenamed("rating_vector", "that_rating_vector")
-    val similarityUdf = udf { (vector: SparseVector, thatVector: SparseVector) =>
-      cosineSimilarity(vector, thatVector)
-    }
-    (ratingVectors crossJoin thatRatingVectors)
-      .where(col("person_id") =!= col("that_person_id"))
-      .withColumn(similarityColumn, similarityUdf(col("rating_vector"), col("that_rating_vector")))
-      .where(col(similarityColumn) > 0)
-      .select(
-        "person_id",
-        "that_person_id",
-        similarityColumn
-      )
   }
 
 }
