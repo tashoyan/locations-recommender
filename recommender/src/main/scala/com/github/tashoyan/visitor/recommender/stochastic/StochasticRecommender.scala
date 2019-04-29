@@ -86,7 +86,6 @@ class StochasticRecommender(
         col("id") =!= vertexId and
           col("probability") > 0
       )
-      .orderBy(col("probability").desc)
     recommendedVertexes
   }
 

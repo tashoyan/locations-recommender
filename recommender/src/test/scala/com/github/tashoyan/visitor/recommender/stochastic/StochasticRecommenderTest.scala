@@ -50,6 +50,7 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       .makeRecommendations(vertexId = 1L)
       .as[(Long, Double)]
       .collect()
+      .sortBy(-_._2)
 
     val expectedRecommendations = Seq(
       (5L, 0.3502),
@@ -73,6 +74,7 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
       .makeRecommendations(vertexId = 1L)
       .as[(Long, Double)]
       .collect()
+      .sortBy(-_._2)
 
     val expectedRecommendations = Seq(
       (3L, 0.408242766375),
