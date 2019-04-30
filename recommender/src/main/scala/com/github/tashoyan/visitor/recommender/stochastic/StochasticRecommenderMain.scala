@@ -51,8 +51,8 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser with Rec
   }
 
   private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: StochasticRecommenderConfig): Try[DataFrame] = {
-    val graphRegionIds = calcGraphRegionIds(recommenderTarget.homeRegionId, recommenderTarget.targetRegionId)
-    val stochasticGraph = loadStochasticGraph(graphRegionIds)
+    val regionIds = Seq(recommenderTarget.homeRegionId, recommenderTarget.targetRegionId)
+    val stochasticGraph = loadStochasticGraph(regionIds)
     val recommender = new StochasticRecommender(
       stochasticGraph,
       config.epsilon,
@@ -76,13 +76,6 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser with Rec
 
     Console.out.println(s"Person ${recommenderTarget.personId} might want to visit in region $targetRegionId:")
     recommendedPlaces.show(false)
-  }
-
-  private def calcGraphRegionIds(homeRegionId: Long, targetRegionId: Long): Seq[Long] = {
-    if (targetRegionId == homeRegionId)
-      Seq(homeRegionId)
-    else
-      Seq(homeRegionId, targetRegionId)
   }
 
   private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: StochasticRecommenderConfig): DataFrame = {
