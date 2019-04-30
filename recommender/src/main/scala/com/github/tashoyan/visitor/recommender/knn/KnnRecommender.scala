@@ -40,6 +40,7 @@ class KnnRecommender(
   }
 
   private def isPersonExist(personSimilarPersons: DataFrame): Boolean = {
+    //TODO More optimal way to check if non-empty
     personSimilarPersons.count() > 0
   }
 
