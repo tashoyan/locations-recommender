@@ -51,6 +51,8 @@ object SampleGeneratorMain extends SampleGeneratorArgParser {
     implicit val spark: SparkSession = SparkSession.builder()
       .getOrCreate()
 
+    Console.out.println(s"Actual configuration: $config")
+
     new LocationVisitsSampleGenerator(
       regions = regions,
       personCount = personCount,
