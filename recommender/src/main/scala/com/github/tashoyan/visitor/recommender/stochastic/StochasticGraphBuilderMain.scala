@@ -42,12 +42,11 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with P
   private def generateRegionGraphs(placeVisits: DataFrame)(implicit spark: SparkSession, config: StochasticGraphBuilderConfig): Unit = {
     val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits)
 
-    val regionStochasticGraphs = regionsPlaceVisits
+    val regionsStochasticGraphs = regionsPlaceVisits
       .map { case (regIds, regPlaceVisits) =>
         (DataUtils.generateGraphFileName(regIds, config.samplesDir), generateStochasticGraph(regPlaceVisits))
       }
-    regionStochasticGraphs.foreach { case (fileName, graph) =>
-      Console.out.println(s"Writing stochastic graph : $fileName")
+    regionsStochasticGraphs.foreach { case (fileName, graph) =>
       writeStochasticGraph(fileName, graph)
     }
   }
@@ -74,6 +73,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with P
   }
 
   private def writeStochasticGraph(fileName: String, graph: DataFrame): Unit = {
+    Console.out.println(s"Writing stochastic graph : $fileName")
     graph.write
       .mode(SaveMode.Overwrite)
       .parquet(fileName)

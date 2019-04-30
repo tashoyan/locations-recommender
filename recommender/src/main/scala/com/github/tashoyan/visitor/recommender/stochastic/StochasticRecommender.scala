@@ -71,6 +71,7 @@ class StochasticRecommender(
   }
 
   private def isVertexExist(vertexId: Long): Boolean = {
+    //TODO More optimal way to check if non-empty
     vertexes
       .where(col("id") === vertexId)
       .count() > 0
