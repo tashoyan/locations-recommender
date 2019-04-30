@@ -116,11 +116,17 @@ object SimilarPersonsBuilder {
       .toInt
     val vectorSize = maxId + 1
 
+    def checkedCast(l: Long): Int = {
+      if (l.isValidInt)
+        l.toInt
+      else
+        throw new ArithmeticException(s"Index out of Int range: $l")
+    }
     val createVectorUdf = udf { (indexes: Seq[Long], values: Seq[Long]) =>
       new SparseVector(
         size = vectorSize,
         indices = indexes
-          .map(_.toInt)
+          .map(checkedCast)
           .toArray,
         values = values
           .map(_.toDouble)

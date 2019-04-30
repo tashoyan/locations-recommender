@@ -45,7 +45,6 @@ class PlacesSampleGenerator(
     regionsDs
       .flatMap(generatePlaces)
       .withColumnRenamed("regionId", "region_id")
-      .withColumn("id", monotonically_increasing_id() + minPlaceId)
   }
 
   private def generatePlaces(region: Region): Iterable[Place] = {
@@ -56,19 +55,14 @@ class PlacesSampleGenerator(
       latIdx <- 1 to latCount
       lonIdx <- 1 to lonCount
     } yield (latIdx, lonIdx)
-    grid.map { case (latIdx, lonIdx) =>
-      val latitude = region.minLatitude + latStep * latIdx
-      val longitude = region.minLongitude + lonStep * lonIdx
-      generatePlace(region, latitude, longitude)
-    }
-  }
-
-  private def generatePlace(region: Region, latitude: Double, longitude: Double): Place = {
-    Place(
-      latitude = latitude,
-      longitude = longitude,
-      regionId = region.id
-    )
+    grid
+      .zipWithIndex
+      .map { case ((latIdx, lonIdx), idx) =>
+        val latitude = region.minLatitude + latStep * latIdx
+        val longitude = region.minLongitude + lonStep * lonIdx
+        val id = minPlaceId + region.id * grid.length + idx
+        Place(id, latitude, longitude, region.id)
+      }
   }
 
   private def withCategories(input: DataFrame, categories: DataFrame): DataFrame = {
