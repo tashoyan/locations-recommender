@@ -1,6 +1,6 @@
 package com.github.tashoyan.visitor.recommender.knn
 
-import com.github.tashoyan.visitor.recommender.RecommenderMainCommon
+import com.github.tashoyan.visitor.recommender.{DataUtils, RecommenderMainCommon}
 import org.apache.spark.sql.functions.{broadcast, col}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
@@ -51,8 +51,9 @@ object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCo
   }
 
   private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: KnnRecommenderConfig): Try[DataFrame] = {
-    val similarPersons = loadSimilarPersons
-    val placeRatings = loadPlaceRatings
+    val regionIds = Seq(recommenderTarget.homeRegionId, recommenderTarget.targetRegionId)
+    val similarPersons = loadSimilarPersons(regionIds)
+    val placeRatings = loadPlaceRatings(regionIds)
     val recommender = new KnnRecommender(similarPersons, placeRatings)
     Try(recommender.makeRecommendations(recommenderTarget.personId))
   }
@@ -74,15 +75,15 @@ object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCo
     recommendedPlaces.show(false)
   }
 
-  private def loadSimilarPersons(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
-    val fileName = s"${config.samplesDir}/similar_persons"
+  private def loadSimilarPersons(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
+    val fileName = DataUtils.generateSimilarPersonsFileName(regionIds, config.samplesDir)
     Console.out.println(s"Loading similar persons from $fileName")
     spark.read
       .parquet(fileName)
   }
 
-  private def loadPlaceRatings(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
-    val fileName = s"${config.samplesDir}/place_ratings"
+  private def loadPlaceRatings(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
+    val fileName = DataUtils.generatePlaceRatingsFileName(regionIds, config.samplesDir)
     Console.out.println(s"Loading place ratings from $fileName")
     spark.read
       .parquet(fileName)
