@@ -49,7 +49,8 @@ class SimilarPersonsBuilder(
 
   private def calcWeightedSimilarities(placeBasedSimilarities: DataFrame, categoryBasedSimilarities: DataFrame): DataFrame = {
     placeBasedSimilarities
-      .join(categoryBasedSimilarities, Seq("person_id", "that_person_id"))
+      .join(categoryBasedSimilarities, Seq("person_id", "that_person_id"), "outer")
+      .na.fill(0.0, Seq("place_based_similarity", "category_based_similarity"))
       .select(
         col("person_id"),
         col("that_person_id"),
