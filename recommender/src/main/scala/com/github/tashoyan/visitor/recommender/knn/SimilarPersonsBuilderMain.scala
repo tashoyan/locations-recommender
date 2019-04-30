@@ -1,11 +1,11 @@
 package com.github.tashoyan.visitor.recommender.knn
 
-import com.github.tashoyan.visitor.recommender.PlaceVisits
+import com.github.tashoyan.visitor.recommender.{DataUtils, PlaceVisits}
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
-object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
+object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with PlaceVisits {
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, SimilarPersonsBuilderConfig()) match {
@@ -28,35 +28,57 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser {
       .withColumn("region_id", col("region_id") cast LongType)
 
     Console.out.println("Generating place visits")
-    val placeVisits = PlaceVisits.calcPlaceVisits(locationVisits, places)
+    val placeVisits = calcPlaceVisits(locationVisits, places)
       .cache()
-    //    PlaceVisits.printPlaceVisits(placeVisits)
-    //    PlaceVisits.writePlaceVisits(placeVisits, config.samplesDir)
+    //    printPlaceVisits(placeVisits)
+    //    writePlaceVisits(placeVisits, config.samplesDir)
 
-    Console.out.println("Generating place and category ratings")
-    val placeRatings = RatingsBuilder.calcPlaceRatings(placeVisits)
-    val categoryRatings = RatingsBuilder.calcCategoryRatings(placeVisits)
-
-    Console.out.println("Generating similar persons")
-    val similarPersonsBuilder = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
-    val similarPersons = similarPersonsBuilder.calcSimilarPersons(placeRatings, categoryRatings)
-
-    writeSimilarPersons(similarPersons)
-    writePlaceRatings(placeRatings)
+    generateRegionSimilarPersons(placeVisits)
   }
 
-  private def writeSimilarPersons(similarPersons: DataFrame)(implicit config: SimilarPersonsBuilderConfig): Unit = {
+  private def generateRegionSimilarPersons(placeVisits: DataFrame)(implicit spark: SparkSession, config: SimilarPersonsBuilderConfig): Unit = {
+    val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits)
+
+    val regionsSimilarPersonsAndPlaceRatings = regionsPlaceVisits
+      .map { case (regIds, regPlaceVisits) =>
+        val regPlaceRatings = RatingsBuilder.calcPlaceRatings(regPlaceVisits)
+        val regCategoryRatings = RatingsBuilder.calcCategoryRatings(regPlaceVisits)
+        val regSimilarPersons = generateSimilarPersons(regPlaceRatings, regCategoryRatings)
+        (
+          DataUtils.generateSimilarPersonsFileName(regIds, config.samplesDir),
+          regSimilarPersons,
+          DataUtils.generatePlaceRatingsFileName(regIds, config.samplesDir),
+          regPlaceRatings
+        )
+      }
+    regionsSimilarPersonsAndPlaceRatings.foreach { case (simPersFileName, similarPersons, placeRatingsFileName, placeRatings) =>
+      writeSimilarPersons(simPersFileName, similarPersons)
+      writePlaceRatings(placeRatingsFileName, placeRatings)
+    }
+  }
+
+  private def generateSimilarPersons(
+      placeRatings: DataFrame,
+      categoryRatings: DataFrame
+  )(implicit config: SimilarPersonsBuilderConfig): DataFrame = {
+    val similarPersonsBuilder = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
+    similarPersonsBuilder.calcSimilarPersons(placeRatings, categoryRatings)
+  }
+
+  private def writeSimilarPersons(fileName: String, similarPersons: DataFrame): Unit = {
+    Console.out.println(s"Writing similar persons: $fileName")
     //TODO How to partition?
     similarPersons.write
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/similar_persons")
+      .parquet(fileName)
   }
 
-  private def writePlaceRatings(placeRatings: DataFrame)(implicit config: SimilarPersonsBuilderConfig): Unit = {
+  private def writePlaceRatings(fileName: String, placeRatings: DataFrame): Unit = {
+    Console.out.println(s"Writing place ratings: $fileName")
     //TODO How to partition?
     placeRatings.write
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/place_ratings")
+      .parquet(fileName)
   }
 
 }
