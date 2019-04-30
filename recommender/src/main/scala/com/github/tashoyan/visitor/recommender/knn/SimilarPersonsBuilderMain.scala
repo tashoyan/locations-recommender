@@ -39,21 +39,15 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
   private def generateRegionSimilarPersons(placeVisits: DataFrame)(implicit spark: SparkSession, config: SimilarPersonsBuilderConfig): Unit = {
     val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits)
 
-    val regionsSimilarPersonsAndPlaceRatings = regionsPlaceVisits
-      .map { case (regIds, regPlaceVisits) =>
-        val regPlaceRatings = RatingsBuilder.calcPlaceRatings(regPlaceVisits)
-        val regCategoryRatings = RatingsBuilder.calcCategoryRatings(regPlaceVisits)
-        val regSimilarPersons = generateSimilarPersons(regPlaceRatings, regCategoryRatings)
-        (
-          DataUtils.generateSimilarPersonsFileName(regIds, config.samplesDir),
-          regSimilarPersons,
-          DataUtils.generatePlaceRatingsFileName(regIds, config.samplesDir),
-          regPlaceRatings
-        )
-      }
-    regionsSimilarPersonsAndPlaceRatings.foreach { case (simPersFileName, similarPersons, placeRatingsFileName, placeRatings) =>
-      writeSimilarPersons(simPersFileName, similarPersons)
-      writePlaceRatings(placeRatingsFileName, placeRatings)
+    regionsPlaceVisits.foreach { case (regIds, regPlaceVisits) =>
+      val regPlaceRatings = RatingsBuilder.calcPlaceRatings(regPlaceVisits)
+      val regCategoryRatings = RatingsBuilder.calcCategoryRatings(regPlaceVisits)
+      val regSimilarPersons = generateSimilarPersons(regPlaceRatings, regCategoryRatings)
+
+      val simPersFileName = DataUtils.generateSimilarPersonsFileName(regIds, config.samplesDir)
+      val placeRatingsFileName = DataUtils.generatePlaceRatingsFileName(regIds, config.samplesDir)
+      writeSimilarPersons(simPersFileName, regSimilarPersons)
+      writePlaceRatings(placeRatingsFileName, regPlaceRatings)
     }
   }
 
