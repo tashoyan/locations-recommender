@@ -84,7 +84,6 @@ object SimilarPersonsBuilder {
       ratingColumn,
       vectorColumn = "rating_vector"
     )
-      .cache()
     //    println(s"-------- Rating vectors count: ${ratingVectors.count()}")
 
     val thatRatingVectors = ratingVectors
