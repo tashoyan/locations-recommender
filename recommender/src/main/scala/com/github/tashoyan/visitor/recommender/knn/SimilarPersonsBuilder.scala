@@ -84,7 +84,6 @@ object SimilarPersonsBuilder {
       ratingColumn,
       vectorColumn = "rating_vector"
     )
-    //    println(s"-------- Rating vectors count: ${ratingVectors.count()}")
 
     val thatRatingVectors = ratingVectors
       .withColumnRenamed("person_id", "that_person_id")
@@ -92,10 +91,8 @@ object SimilarPersonsBuilder {
     val similarityUdf = udf { (vector: SparseVector, thatVector: SparseVector) =>
       cosineSimilarity(vector, thatVector)
     }
-    ratingVectors
-      .join(thatRatingVectors, col("person_id") =!= col("that_person_id"))
-      //    (ratingVectors crossJoin thatRatingVectors)
-      //      .where(col("person_id") =!= col("that_person_id"))
+    (ratingVectors crossJoin thatRatingVectors)
+      .where(col("person_id") =!= col("that_person_id"))
       .withColumn(similarityColumn, similarityUdf(col("rating_vector"), col("that_rating_vector")))
       .where(col(similarityColumn) > 0)
       .select(
