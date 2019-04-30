@@ -10,17 +10,18 @@
         </layout>
     </appender>
 
-    <appender name="file" class="org.apache.log4j.FileAppender">
+    <appender name="file" class="org.apache.log4j.RollingFileAppender">
         <param name="threshold" value="TRACE" />
-        <param name="File" value="${java.io.tmpdir}/welcome-visitor.log" />
-        <param name="Append" value="false" />
+        <param name="File" value="${app.log.dir}/welcome-visitor.log" />
+        <param name="MaxFileSize" value="1MB" />
+        <param name="MaxBackupIndex" value="5" />
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d{ISO8601} %-5p [%t] %c %x - %m%n" />
         </layout>
     </appender>
 
     <root>
-        <level value="DEBUG" />
+        <level value="WARN" />
         <appender-ref ref="file" />
         <appender-ref ref="console" />
     </root>
