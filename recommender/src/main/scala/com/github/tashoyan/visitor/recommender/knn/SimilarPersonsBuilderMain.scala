@@ -38,25 +38,18 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
 
   private def generateRegionSimilarPersons(placeVisits: DataFrame)(implicit spark: SparkSession, config: SimilarPersonsBuilderConfig): Unit = {
     val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits)
+    val similarPersonsBuilder = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
 
     regionsPlaceVisits.foreach { case (regIds, regPlaceVisits) =>
       val regPlaceRatings = RatingsBuilder.calcPlaceRatings(regPlaceVisits)
       val regCategoryRatings = RatingsBuilder.calcCategoryRatings(regPlaceVisits)
-      val regSimilarPersons = generateSimilarPersons(regPlaceRatings, regCategoryRatings)
+      val regSimilarPersons = similarPersonsBuilder.calcSimilarPersons(regPlaceRatings, regCategoryRatings)
 
       val simPersFileName = DataUtils.generateSimilarPersonsFileName(regIds, config.samplesDir)
       val placeRatingsFileName = DataUtils.generatePlaceRatingsFileName(regIds, config.samplesDir)
       writeSimilarPersons(simPersFileName, regSimilarPersons)
       writePlaceRatings(placeRatingsFileName, regPlaceRatings)
     }
-  }
-
-  private def generateSimilarPersons(
-      placeRatings: DataFrame,
-      categoryRatings: DataFrame
-  )(implicit config: SimilarPersonsBuilderConfig): DataFrame = {
-    val similarPersonsBuilder = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
-    similarPersonsBuilder.calcSimilarPersons(placeRatings, categoryRatings)
   }
 
   private def writeSimilarPersons(fileName: String, similarPersons: DataFrame): Unit = {
