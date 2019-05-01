@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.tashoyan</groupId>
-    <artifactId>welcome-visitor</artifactId>
+    <artifactId>visit-recommender</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Welcome Visitor</name>
+    <name>Visit Recommender</name>
 
     <modules>
         <module>test-resources</module>
