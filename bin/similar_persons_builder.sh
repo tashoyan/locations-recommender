@@ -30,4 +30,4 @@ spark-submit \
 --samples-dir "$samples_dir" \
 --place-weight 0.5 \
 --category-weight 0.5 \
---k-nearest 50
+--k-nearest 1000
