@@ -22,8 +22,8 @@ object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCo
 
     Console.out.println(s"Actual configuration: $config")
 
-    val persons = loadPersons(config.samplesDir)
-    val places = loadPlaces(config.samplesDir)
+    val persons = loadPersons(config.dataDir)
+    val places = loadPlaces(config.dataDir)
 
     Console.out.println(
       """Enter ID of the person to be provided with recommendation and ID of the target region:
@@ -76,14 +76,14 @@ object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCo
   }
 
   private def loadSimilarPersons(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
-    val fileName = DataUtils.generateSimilarPersonsFileName(regionIds, config.samplesDir)
+    val fileName = DataUtils.generateSimilarPersonsFileName(regionIds, config.dataDir)
     Console.out.println(s"Loading similar persons from $fileName")
     spark.read
       .parquet(fileName)
   }
 
   private def loadPlaceRatings(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
-    val fileName = DataUtils.generatePlaceRatingsFileName(regionIds, config.samplesDir)
+    val fileName = DataUtils.generatePlaceRatingsFileName(regionIds, config.dataDir)
     Console.out.println(s"Loading place ratings from $fileName")
     spark.read
       .parquet(fileName)

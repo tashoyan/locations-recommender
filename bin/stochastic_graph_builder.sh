@@ -4,7 +4,7 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
-samples_dir="samples"
+data_dir="data"
 
 base_dir="$(cd "$(dirname -- "$0")" ; cd .. ; pwd)"
 
@@ -27,6 +27,6 @@ spark-submit \
 --conf "spark.executor.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
 --class com.github.tashoyan.visitor.recommender.stochastic.StochasticGraphBuilderMain \
 "$jar_file" \
---samples-dir "$samples_dir" \
+--data-dir "$data_dir" \
 --beta-person-place 0.5 \
 --beta-person-category 0.5

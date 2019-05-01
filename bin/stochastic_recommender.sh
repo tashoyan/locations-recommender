@@ -4,7 +4,7 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
-samples_dir="samples"
+data_dir="data"
 
 base_dir="$(cd "$(dirname -- "$0")" ; cd .. ; pwd)"
 
@@ -27,7 +27,7 @@ spark-submit \
 --conf "spark.executor.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
 --class com.github.tashoyan.visitor.recommender.stochastic.StochasticRecommenderMain \
 "$jar_file" \
---samples-dir "$samples_dir" \
+--data-dir "$data_dir" \
 --epsilon 0.01 \
 --max-iterations 20 \
 --max-recommendations 10

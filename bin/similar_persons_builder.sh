@@ -4,7 +4,7 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
-samples_dir="samples"
+data_dir="data"
 
 base_dir="$(cd "$(dirname -- "$0")" ; cd .. ; pwd)"
 
@@ -27,7 +27,7 @@ spark-submit \
 --conf "spark.executor.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
 --class com.github.tashoyan.visitor.recommender.knn.SimilarPersonsBuilderMain \
 "$jar_file" \
---samples-dir "$samples_dir" \
+--data-dir "$data_dir" \
 --place-weight 0.5 \
 --category-weight 0.5 \
 --k-nearest 1000

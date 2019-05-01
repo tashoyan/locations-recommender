@@ -71,7 +71,7 @@ class LocationVisitsSampleGenerator(
       .write
       .partitionBy("home_region_id")
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/persons_sample")
+      .parquet(s"${config.dataDir}/persons_sample")
   }
 
   private def withVisits(persons: DataFrame)(implicit spark: SparkSession): DataFrame = {
@@ -207,7 +207,7 @@ class LocationVisitsSampleGenerator(
       .write
       .partitionBy("region_id", "year_month")
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/location_visits_sample")
+      .parquet(s"${config.dataDir}/location_visits_sample")
   }
 
 }

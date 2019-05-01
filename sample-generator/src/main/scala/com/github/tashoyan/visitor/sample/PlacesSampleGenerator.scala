@@ -110,14 +110,14 @@ class PlacesSampleGenerator(
       .write
       .partitionBy("region_id")
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/places_sample")
+      .parquet(s"${config.dataDir}/places_sample")
   }
 
   private def writeCategories(categories: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
     categories
       .write
       .mode(SaveMode.Overwrite)
-      .parquet(s"${config.samplesDir}/categories_sample")
+      .parquet(s"${config.dataDir}/categories_sample")
   }
 
 }

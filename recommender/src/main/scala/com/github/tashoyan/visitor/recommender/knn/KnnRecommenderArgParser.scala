@@ -8,15 +8,15 @@ trait KnnRecommenderArgParser {
   val parser: OptionParser[KnnRecommenderConfig] = new OptionParser[KnnRecommenderConfig]("recommender") {
     head("Recommender")
 
-    opt[String]("samples-dir")
+    opt[String]("data-dir")
       .required()
       .valueName("<path>")
-      .action((value, conf) => conf.copy(samplesDir = value))
+      .action((value, conf) => conf.copy(dataDir = value))
       .validate { value =>
-        if (value.isEmpty) failure("Samples directory must be non-empty path")
+        if (value.isEmpty) failure("Data directory must be non-empty path")
         else success
       }
-      .text("Samples directory to put the generated samples")
+      .text("Data directory to put the generated samples")
 
     opt[Int]("max-recommendations")
       .optional()

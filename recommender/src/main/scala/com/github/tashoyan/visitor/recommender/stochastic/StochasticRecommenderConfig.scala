@@ -3,7 +3,7 @@ package com.github.tashoyan.visitor.recommender.stochastic
 import com.github.tashoyan.visitor.recommender.stochastic.StochasticRecommenderConfig._
 
 case class StochasticRecommenderConfig(
-    samplesDir: String = "",
+    dataDir: String = "",
     epsilon: Double = defaultEpsilon,
     maxIterations: Int = defaultMaxIterations,
     maxRecommendations: Int = defaultMaxRecommendations

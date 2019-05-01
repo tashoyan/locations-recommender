@@ -24,17 +24,17 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with P
     Console.out.println(s"Actual configuration: $config")
 
     val locationVisits = spark.read
-      .parquet(s"${config.samplesDir}/location_visits_sample")
+      .parquet(s"${config.dataDir}/location_visits_sample")
       .withColumn("region_id", col("region_id") cast LongType)
     val places = spark.read
-      .parquet(s"${config.samplesDir}/places_sample")
+      .parquet(s"${config.dataDir}/places_sample")
       .withColumn("region_id", col("region_id") cast LongType)
 
     Console.out.println("Generating place visits")
     val placeVisits = calcPlaceVisits(locationVisits, places)
       .cache()
     printPlaceVisits(placeVisits)
-    writePlaceVisits(placeVisits, config.samplesDir)
+    writePlaceVisits(placeVisits, config.dataDir)
 
     generateRegionGraphs(placeVisits)
   }
@@ -44,7 +44,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with P
 
     regionsPlaceVisits.foreach { case (regIds, regPlaceVisits) =>
       val regGraph = generateStochasticGraph(regPlaceVisits)
-      val graphFileName = DataUtils.generateGraphFileName(regIds, config.samplesDir)
+      val graphFileName = DataUtils.generateGraphFileName(regIds, config.dataDir)
       writeStochasticGraph(graphFileName, regGraph)
     }
   }

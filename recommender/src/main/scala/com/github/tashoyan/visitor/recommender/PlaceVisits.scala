@@ -96,12 +96,12 @@ trait PlaceVisits {
     placeVisits.show(false)
   }
 
-  protected def writePlaceVisits(placeVisits: DataFrame, samplesDir: String): Unit = {
+  protected def writePlaceVisits(placeVisits: DataFrame, dataDir: String): Unit = {
     placeVisits
       .write
       .partitionBy("region_id", "year_month")
       .mode(SaveMode.Overwrite)
-      .parquet(s"$samplesDir/place_visits")
+      .parquet(s"$dataDir/place_visits")
   }
 
 }

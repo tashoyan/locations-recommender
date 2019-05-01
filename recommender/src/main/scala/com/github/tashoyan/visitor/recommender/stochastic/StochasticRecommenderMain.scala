@@ -22,8 +22,8 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser with Rec
 
     Console.out.println(s"Actual configuration: $config")
 
-    val persons = loadPersons(config.samplesDir)
-    val places = loadPlaces(config.samplesDir)
+    val persons = loadPersons(config.dataDir)
+    val places = loadPlaces(config.dataDir)
 
     Console.out.println(
       """Enter ID of the person to be provided with recommendation and ID of the target region:
@@ -79,7 +79,7 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser with Rec
   }
 
   private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: StochasticRecommenderConfig): DataFrame = {
-    val stochasticGraphFile = DataUtils.generateGraphFileName(regionIds, config.samplesDir)
+    val stochasticGraphFile = DataUtils.generateGraphFileName(regionIds, config.dataDir)
     Console.out.println(s"Loading stochastic graph of visited places from $stochasticGraphFile")
     val stochasticGraph = spark.read
       .parquet(stochasticGraphFile)

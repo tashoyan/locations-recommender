@@ -21,17 +21,17 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
     Console.out.println(s"Actual configuration: $config")
 
     val locationVisits = spark.read
-      .parquet(s"${config.samplesDir}/location_visits_sample")
+      .parquet(s"${config.dataDir}/location_visits_sample")
       .withColumn("region_id", col("region_id") cast LongType)
     val places = spark.read
-      .parquet(s"${config.samplesDir}/places_sample")
+      .parquet(s"${config.dataDir}/places_sample")
       .withColumn("region_id", col("region_id") cast LongType)
 
     Console.out.println("Generating place visits")
     val placeVisits = calcPlaceVisits(locationVisits, places)
       .cache()
     //    printPlaceVisits(placeVisits)
-    //    writePlaceVisits(placeVisits, config.samplesDir)
+    //    writePlaceVisits(placeVisits, config.dataDir)
 
     generateRegionSimilarPersons(placeVisits)
   }
@@ -45,8 +45,8 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
       val regCategoryRatings = RatingsBuilder.calcCategoryRatings(regPlaceVisits)
       val regSimilarPersons = similarPersonsBuilder.calcSimilarPersons(regPlaceRatings, regCategoryRatings)
 
-      val simPersFileName = DataUtils.generateSimilarPersonsFileName(regIds, config.samplesDir)
-      val placeRatingsFileName = DataUtils.generatePlaceRatingsFileName(regIds, config.samplesDir)
+      val simPersFileName = DataUtils.generateSimilarPersonsFileName(regIds, config.dataDir)
+      val placeRatingsFileName = DataUtils.generatePlaceRatingsFileName(regIds, config.dataDir)
       writeSimilarPersons(simPersFileName, regSimilarPersons)
       writePlaceRatings(placeRatingsFileName, regPlaceRatings)
     }

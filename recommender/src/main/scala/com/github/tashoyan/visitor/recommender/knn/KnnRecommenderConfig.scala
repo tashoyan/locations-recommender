@@ -3,7 +3,7 @@ package com.github.tashoyan.visitor.recommender.knn
 import com.github.tashoyan.visitor.recommender.knn.KnnRecommenderConfig._
 
 case class KnnRecommenderConfig(
-    samplesDir: String = "",
+    dataDir: String = "",
     maxRecommendations: Int = defaultMaxRecommendations
 )
 

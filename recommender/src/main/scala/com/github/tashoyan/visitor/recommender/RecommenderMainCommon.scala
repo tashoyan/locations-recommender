@@ -14,16 +14,16 @@ trait RecommenderMainCommon {
       targetRegionId: Long
   )
 
-  protected def loadPersons(samplesDir: String)(implicit spark: SparkSession): DataFrame = {
-    val personsFile = s"$samplesDir/persons_sample"
+  protected def loadPersons(dataDir: String)(implicit spark: SparkSession): DataFrame = {
+    val personsFile = s"$dataDir/persons_sample"
     Console.out.println(s"Loading persons from $personsFile")
     spark.read
       .parquet(personsFile)
       .withColumn("home_region_id", col("home_region_id") cast LongType)
   }
 
-  protected def loadPlaces(samplesDir: String)(implicit spark: SparkSession): DataFrame = {
-    val placesFile = s"$samplesDir/places_sample"
+  protected def loadPlaces(dataDir: String)(implicit spark: SparkSession): DataFrame = {
+    val placesFile = s"$dataDir/places_sample"
     Console.out.println(s"Loading places from $placesFile")
     spark.read
       .parquet(placesFile)
