@@ -54,7 +54,6 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
 
   private def writeSimilarPersons(fileName: String, similarPersons: DataFrame): Unit = {
     Console.out.println(s"Writing similar persons: $fileName")
-    //TODO How to partition?
     similarPersons.write
       .mode(SaveMode.Overwrite)
       .parquet(fileName)
@@ -62,7 +61,6 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
 
   private def writePlaceRatings(fileName: String, placeRatings: DataFrame): Unit = {
     Console.out.println(s"Writing place ratings: $fileName")
-    //TODO How to partition?
     placeRatings.write
       .mode(SaveMode.Overwrite)
       .parquet(fileName)
