@@ -1,2 +1,2 @@
-# welcome-visitor
-Recommender system for visitors - come to a place where you are welcome.
+# Visit Recommender
+Recommender system that suggests people what places to visit.
