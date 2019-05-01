@@ -71,10 +71,9 @@ class StochasticRecommender(
   }
 
   private def isVertexExist(vertexId: Long): Boolean = {
-    //TODO More optimal way to check if non-empty
-    vertexes
+    val whereVertexId = vertexes
       .where(col("id") === vertexId)
-      .count() > 0
+    !whereVertexId.isEmpty
   }
 
   private def makeRecommendations0(vertexId: Long): DataFrame = {
