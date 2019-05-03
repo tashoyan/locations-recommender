@@ -13,6 +13,7 @@ object Levenshtein {
     * @param str1 The first string.
     * @param str2 The second string.
     * @return The distance between the two strings.
+    * @throws NullPointerException Argument is null.
     */
   def lev(str1: String, str2: String): Int = {
     val len1 = str1.length
