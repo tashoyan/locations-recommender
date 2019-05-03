@@ -9,6 +9,7 @@ object Levenshtein {
 
   /**
     * Calculates Levenshtein distance between two strings.
+    *
     * @param str1 The first string.
     * @param str2 The second string.
     * @return The distance between the two strings.
