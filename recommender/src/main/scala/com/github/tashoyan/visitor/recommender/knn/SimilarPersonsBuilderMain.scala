@@ -20,12 +20,8 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
 
     Console.out.println(s"Actual configuration: $config")
 
-    val locationVisits = spark.read
-      .parquet(s"${config.dataDir}/location_visits_sample")
-      .withColumn("region_id", col("region_id") cast LongType)
-    val places = spark.read
-      .parquet(s"${config.dataDir}/places_sample")
-      .withColumn("region_id", col("region_id") cast LongType)
+    val locationVisits = DataUtils.loadLocationVisits(config.dataDir)
+    val places = DataUtils.loadPlaces(config.dataDir)
 
     Console.out.println("Generating place visits")
     val placeVisits = calcPlaceVisits(locationVisits, places)

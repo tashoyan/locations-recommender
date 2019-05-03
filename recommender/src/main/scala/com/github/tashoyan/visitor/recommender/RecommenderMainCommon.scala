@@ -1,8 +1,7 @@
 package com.github.tashoyan.visitor.recommender
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.LongType
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import scala.util.Try
 
@@ -13,22 +12,6 @@ trait RecommenderMainCommon {
       homeRegionId: Long,
       targetRegionId: Long
   )
-
-  protected def loadPersons(dataDir: String)(implicit spark: SparkSession): DataFrame = {
-    val personsFile = s"$dataDir/persons_sample"
-    Console.out.println(s"Loading persons from $personsFile")
-    spark.read
-      .parquet(personsFile)
-      .withColumn("home_region_id", col("home_region_id") cast LongType)
-  }
-
-  protected def loadPlaces(dataDir: String)(implicit spark: SparkSession): DataFrame = {
-    val placesFile = s"$dataDir/places_sample"
-    Console.out.println(s"Loading places from $placesFile")
-    spark.read
-      .parquet(placesFile)
-      .withColumn("region_id", col("region_id") cast LongType)
-  }
 
   private val inputRegex = """(\d+)\s*(\d+)?""".r
 

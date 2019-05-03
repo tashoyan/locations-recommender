@@ -22,8 +22,8 @@ object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCo
 
     Console.out.println(s"Actual configuration: $config")
 
-    val persons = loadPersons(config.dataDir)
-    val places = loadPlaces(config.dataDir)
+    val persons = DataUtils.loadPersons(config.dataDir)
+    val places = DataUtils.loadPlaces(config.dataDir)
 
     Console.out.println(
       """Enter ID of the person to be provided with recommendation and ID of the target region:
