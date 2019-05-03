@@ -25,7 +25,7 @@ spark-submit \
 --properties-file "$spark_config_file" \
 --conf "spark.driver.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
 --conf "spark.executor.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
---class com.github.tashoyan.visitor.recommender.knn.KnnRecommenderMain \
+--class com.github.tashoyan.recommender.knn.KnnRecommenderMain \
 "$jar_file" \
 --data-dir "$data_dir" \
 --max-recommendations 10

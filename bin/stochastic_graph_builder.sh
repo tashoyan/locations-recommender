@@ -25,7 +25,7 @@ spark-submit \
 --properties-file "$spark_config_file" \
 --conf "spark.driver.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
 --conf "spark.executor.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
---class com.github.tashoyan.visitor.recommender.stochastic.StochasticGraphBuilderMain \
+--class com.github.tashoyan.recommender.stochastic.StochasticGraphBuilderMain \
 "$jar_file" \
 --data-dir "$data_dir" \
 --beta-person-place 0.5 \
