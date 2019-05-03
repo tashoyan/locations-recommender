@@ -12,7 +12,6 @@
     <modules>
         <module>test-resources</module>
         <module>sample-generator</module>
-        <module>deduplicator</module>
         <module>recommender</module>
     </modules>
 

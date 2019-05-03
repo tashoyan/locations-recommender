@@ -1,8 +1,6 @@
 package com.github.tashoyan.visitor.recommender.knn
 
 import com.github.tashoyan.visitor.recommender.{DataUtils, PlaceVisits}
-import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with PlaceVisits {

@@ -1,6 +1,6 @@
-package com.github.tashoyan.visitor.deduplicator
+package com.github.tashoyan.visitor.recommender.deduplicator
 
-import com.github.tashoyan.visitor.deduplicator.Levenshtein._
+import com.github.tashoyan.visitor.recommender.deduplicator.Levenshtein._
 import org.scalatest.FunSuite
 import org.scalatest.Matchers._
 

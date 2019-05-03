@@ -1,5 +1,6 @@
-package com.github.tashoyan.visitor.deduplicator
+package com.github.tashoyan.visitor.recommender.deduplicator
 
+import com.github.tashoyan.visitor.recommender.DataUtils
 import org.apache.spark.sql.SparkSession
 
 object PlaceDeduplicatorMain extends PlaceDeduplicatorArgParser {
@@ -18,6 +19,7 @@ object PlaceDeduplicatorMain extends PlaceDeduplicatorArgParser {
     Console.out.println(s"Actual configuration: $config")
 
     val places = DataUtils.loadPlaces(config.dataDir)
+    places.show(false)
   }
 
 }

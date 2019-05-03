@@ -1,6 +1,6 @@
-package com.github.tashoyan.visitor.deduplicator
+package com.github.tashoyan.visitor.recommender.deduplicator
 
-import com.github.tashoyan.visitor.deduplicator.PlaceDeduplicatorConfig._
+import com.github.tashoyan.visitor.recommender.deduplicator.PlaceDeduplicatorConfig._
 import scopt.OptionParser
 
 trait PlaceDeduplicatorArgParser {

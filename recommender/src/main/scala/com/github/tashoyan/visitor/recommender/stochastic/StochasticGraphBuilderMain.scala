@@ -1,8 +1,6 @@
 package com.github.tashoyan.visitor.recommender.stochastic
 
 import com.github.tashoyan.visitor.recommender.{DataUtils, PlaceVisits}
-import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.LongType
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with PlaceVisits {

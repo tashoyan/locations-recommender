@@ -1,4 +1,4 @@
-package com.github.tashoyan.visitor.deduplicator
+package com.github.tashoyan.visitor.recommender.deduplicator
 
 import scala.math.min
 
