@@ -13,6 +13,7 @@ class PlaceDeduplicator(
   def dropDuplicates(places: DataFrame, confirmedPlaces: DataFrame): DataFrame = {
     val thatConfirmedPlaces = confirmedPlaces
       .select(
+        col("region_id"),
         col("id") as "that_id",
         col("name") as "that_name",
         col("latitude") as "that_latitude",
@@ -34,7 +35,8 @@ class PlaceDeduplicator(
         lev(name.toLowerCase, thatName.toLowerCase) > maxNameDifference0
     }
 
-    val noDuplicatePlaces = (places crossJoin thatConfirmedPlaces)
+    val noDuplicatePlaces = places
+      .join(thatConfirmedPlaces, "region_id")
       .where(col("id") =!= col("that_id"))
       .where(
         isNotSamePlaceUdf(
