@@ -64,6 +64,7 @@ class LocationVisitsSampleGenerator(
         .map(personId => (personId, regionId))
     }
       .toDF("id", "home_region_id")
+      .repartition(col("id"))
   }
 
   private def writePersons(persons: DataFrame)(implicit config: SampleGeneratorConfig): Unit = {
