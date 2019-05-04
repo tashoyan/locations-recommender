@@ -30,11 +30,12 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with P
     printPlaceVisits(placeVisits)
     writePlaceVisits(placeVisits, config.dataDir)
 
-    generateRegionGraphs(placeVisits)
+    generateRegionGraphs(placeVisits, places)
   }
 
-  private def generateRegionGraphs(placeVisits: DataFrame)(implicit spark: SparkSession, config: StochasticGraphBuilderConfig): Unit = {
-    val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits)
+  private def generateRegionGraphs(placeVisits: DataFrame, places: DataFrame)(implicit spark: SparkSession, config: StochasticGraphBuilderConfig): Unit = {
+    val regionIds = extractRegionIds(places)
+    val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits, regionIds)
 
     regionsPlaceVisits.foreach { case (regIds, regPlaceVisits) =>
       val regGraph = generateStochasticGraph(regPlaceVisits)

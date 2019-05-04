@@ -42,17 +42,16 @@ trait PlaceVisits {
       .repartition(col("region_id"), col("year_month"))
   }
 
-  protected def extractRegionsPlaceVisits(placeVisits: DataFrame)(implicit spark: SparkSession): Seq[(Seq[Long], DataFrame)] = {
-    val regionIds = extractRegionIds(placeVisits)
+  protected def extractRegionsPlaceVisits(placeVisits: DataFrame, regionIds: Seq[Long]): Seq[(Seq[Long], DataFrame)] = {
     val regionIdsSeq: Seq[Seq[Long]] = regionIds.map(Seq(_)) ++
       regionIds.combinations(2)
     regionIdsSeq map extractRegionsPlaceVisits0(placeVisits)
   }
 
-  private def extractRegionIds(placeVisits: DataFrame)(implicit spark: SparkSession): Seq[Long] = {
+  protected def extractRegionIds(places: DataFrame)(implicit spark: SparkSession): Seq[Long] = {
     import spark.implicits._
 
-    placeVisits
+    places
       .select("region_id")
       .distinct()
       .as[Long]

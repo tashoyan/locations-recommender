@@ -27,11 +27,15 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
     //    printPlaceVisits(placeVisits)
     //    writePlaceVisits(placeVisits, config.dataDir)
 
-    generateRegionSimilarPersons(placeVisits)
+    generateRegionSimilarPersons(placeVisits, places)
   }
 
-  private def generateRegionSimilarPersons(placeVisits: DataFrame)(implicit spark: SparkSession, config: SimilarPersonsBuilderConfig): Unit = {
-    val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits)
+  private def generateRegionSimilarPersons(
+      placeVisits: DataFrame,
+      places: DataFrame
+  )(implicit spark: SparkSession, config: SimilarPersonsBuilderConfig): Unit = {
+    val regionIds = extractRegionIds(places)
+    val regionsPlaceVisits = extractRegionsPlaceVisits(placeVisits, regionIds)
     val similarPersonsBuilder = new SimilarPersonsBuilder(config.placeWeight, config.categoryWeight, config.kNearest)
 
     regionsPlaceVisits.foreach { case (regIds, regPlaceVisits) =>
