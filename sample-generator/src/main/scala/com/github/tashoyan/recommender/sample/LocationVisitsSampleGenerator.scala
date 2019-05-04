@@ -47,7 +47,7 @@ class LocationVisitsSampleGenerator(
       .repartition(col("region_id"), col("year_month"))
       .cache()
 
-    printLocationVisits(locationVisits)
+//    printLocationVisits(locationVisits)
     assertLocationVisitsCorrect(locationVisits)
     writeLocationVisits(locationVisits)
   }
@@ -132,7 +132,7 @@ class LocationVisitsSampleGenerator(
       )
   }
 
-  private def printLocationVisits(locationVisits: DataFrame): Unit = {
+  protected def printLocationVisits(locationVisits: DataFrame): Unit = {
     println(s"Location visits sample size: ${locationVisits.count()}")
     println("Location visits min/max timestamp:")
     locationVisits

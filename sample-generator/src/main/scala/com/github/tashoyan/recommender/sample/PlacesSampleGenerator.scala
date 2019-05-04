@@ -24,7 +24,7 @@ class PlacesSampleGenerator(
       .repartition(col("region_id"), col("category_id"))
       .cache()
 
-    printPlaces(places)
+    //    printPlaces(places)
     writePlaces(places)
     writeCategories(categories)
   }
@@ -89,7 +89,7 @@ class PlacesSampleGenerator(
       .withColumn("description", col("name"))
   }
 
-  private def printPlaces(places: DataFrame): Unit = {
+  protected def printPlaces(places: DataFrame): Unit = {
     println(s"Places sample size: ${places.count()}")
     println("Place counts by regions:")
     places
