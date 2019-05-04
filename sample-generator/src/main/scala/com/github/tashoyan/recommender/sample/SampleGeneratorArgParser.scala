@@ -17,6 +17,26 @@ trait SampleGeneratorArgParser {
       }
       .text("Data directory to put the generated samples")
 
+    opt[Long]("place-count")
+      .required()
+      .valueName("<number>")
+      .action((value, conf) => conf.copy(placeCount = value))
+      .validate { value =>
+        if (value <= 0) failure("Place count must be positive")
+        else success
+      }
+      .text("How many places to generate for all regions")
+
+    opt[Long]("person-count")
+      .required()
+      .valueName("<number>")
+      .action((value, conf) => conf.copy(personCount = value))
+      .validate { value =>
+        if (value <= 0) failure("Person count must be positive")
+        else success
+      }
+      .text("How many persons to generate for all regions")
+
     help("help")
     version("version")
   }

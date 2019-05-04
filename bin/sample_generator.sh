@@ -27,4 +27,6 @@ spark-submit \
 --conf "spark.executor.extraJavaOptions=-Dapp.log.dir=$log_dir -Dlog4j.configuration=file://$log_config_file" \
 --class com.github.tashoyan.recommender.sample.SampleGeneratorMain \
 "$jar_file" \
---data-dir "$data_dir"
+--data-dir "$data_dir" \
+--place-count 300 \
+--person-count 3000

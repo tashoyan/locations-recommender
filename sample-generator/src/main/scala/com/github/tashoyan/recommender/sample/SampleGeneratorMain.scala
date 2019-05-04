@@ -33,12 +33,8 @@ object SampleGeneratorMain extends SampleGeneratorArgParser {
     "fallout_shelter"
   )
 
-  private val placeCount: Long = 300L
-  private val personCount: Long = 3000L
-
-  private val minCategiryId: Long = 0L
-  private val minPlaceId: Long = minCategiryId + placeCategories.length * 2
-  private val minPersonId: Long = minPlaceId + placeCount * 2
+  private val minCategoryId: Long = 0L
+  private val minPlaceId: Long = minCategoryId + placeCategories.length * 2
 
   def main(args: Array[String]): Unit = {
     parser.parse(args, SampleGeneratorConfig()) match {
@@ -53,6 +49,10 @@ object SampleGeneratorMain extends SampleGeneratorArgParser {
 
     Console.out.println(s"Actual configuration: $config")
 
+    val placeCount: Long = config.placeCount
+    val personCount: Long = config.personCount
+    val minPersonId: Long = minPlaceId + placeCount * 2
+
     new LocationVisitsSampleGenerator(
       regions = regions,
       personCount = personCount,
@@ -62,7 +62,7 @@ object SampleGeneratorMain extends SampleGeneratorArgParser {
     new PlacesSampleGenerator(
       regions = regions,
       placeCategories = placeCategories,
-      minCategoryId = minCategiryId,
+      minCategoryId = minCategoryId,
       placeCount = placeCount,
       minPlaceId = minPlaceId
     )
