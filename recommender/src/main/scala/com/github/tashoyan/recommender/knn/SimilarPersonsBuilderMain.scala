@@ -22,10 +22,10 @@ object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with Pla
     val places = DataUtils.loadPlaces(config.dataDir)
 
     Console.out.println("Generating place visits")
-    val placeVisits = calcPlaceVisits(locationVisits, places)
+    val placeVisits = calcPlaceVisits(locationVisits, places, config.lastDaysCount)
       .cache()
     //    printPlaceVisits(placeVisits)
-    //    writePlaceVisits(placeVisits, config.dataDir)
+    writePlaceVisits(placeVisits, config.dataDir)
 
     generateRegionSimilarPersons(placeVisits, places)
   }

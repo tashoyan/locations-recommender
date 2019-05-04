@@ -28,6 +28,7 @@ spark-submit \
 --class com.github.tashoyan.recommender.knn.SimilarPersonsBuilderMain \
 "$jar_file" \
 --data-dir "$data_dir" \
+--last-days-count 7 \
 --place-weight 0.5 \
 --category-weight 0.5 \
 --k-nearest 1000

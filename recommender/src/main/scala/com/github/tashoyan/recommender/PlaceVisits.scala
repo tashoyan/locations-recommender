@@ -1,12 +1,15 @@
 package com.github.tashoyan.recommender
 
-import PlaceVisits._
+import java.sql.Timestamp
+
+import com.github.tashoyan.recommender.PlaceVisits._
 import org.apache.spark.sql.functions.{col, max, min, udf}
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 
 trait PlaceVisits {
 
-  protected def calcPlaceVisits(locationVisits: DataFrame, places: DataFrame): DataFrame = {
+  protected def calcPlaceVisits(locationVisits: DataFrame, places: DataFrame, lastDaysCount: Int)(implicit spark: SparkSession): DataFrame = {
+    val visitsFrom = calcVisitsFromTimestamp(locationVisits, lastDaysCount)
     val placeIsVisitedUdf = udf { (
       locationLatitude: Double,
       locationLongitude: Double,
@@ -19,6 +22,7 @@ trait PlaceVisits {
     }
 
     val placeVisits = locationVisits
+      .where(col("timestamp") >= visitsFrom)
       .withColumnRenamed("latitude", "location_latitude")
       .withColumnRenamed("longitude", "location_longitude")
       .join(places, "region_id")
@@ -34,12 +38,23 @@ trait PlaceVisits {
         col("person_id"),
         col("timestamp"),
         col("year_month"),
-        col("region_id"),
         col("id") as "place_id",
         col("category_id")
       )
     placeVisits
-      .repartition(col("region_id"), col("year_month"))
+  }
+
+  private def calcVisitsFromTimestamp(locationVisits: DataFrame, lastDaysCount: Int)(implicit spark: SparkSession): Timestamp = {
+    import spark.implicits._
+
+    val maxTimestamp = locationVisits
+      .select(max(col("timestamp")))
+      .as[Timestamp]
+      .head()
+    Timestamp.valueOf(
+      maxTimestamp.toLocalDateTime
+        .minusDays(lastDaysCount.toLong)
+    )
   }
 
   protected def extractRegionsPlaceVisits(placeVisits: DataFrame, regionIds: Seq[Long]): Seq[(Seq[Long], DataFrame)] = {
@@ -98,7 +113,6 @@ trait PlaceVisits {
   protected def writePlaceVisits(placeVisits: DataFrame, dataDir: String): Unit = {
     placeVisits
       .write
-      .partitionBy("region_id", "year_month")
       .mode(SaveMode.Overwrite)
       .parquet(s"$dataDir/place_visits")
   }

@@ -17,6 +17,16 @@ trait StochasticGraphBuilderArgParser {
       }
       .text("Data directory to put the generated samples")
 
+    opt[Int]("last-days-count")
+      .required()
+      .valueName("<number>")
+      .action((value, conf) => conf.copy(lastDaysCount = value))
+      .validate { value =>
+        if (value <= 0) failure("Last days count must be positive")
+        else success
+      }
+      .text("Consider past visits occurred during this number of last days")
+
     opt[Double]("beta-person-place")
       .required()
       .valueName("<value>")
