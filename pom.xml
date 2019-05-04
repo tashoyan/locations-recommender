@@ -38,19 +38,19 @@
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
 
-        <spark.version>2.4.0</spark.version>
+        <spark.version>2.4.2</spark.version>
         <breeze.version>0.13.2</breeze.version>
-        <paranamer.version>2.8</paranamer.version>
         <scopt.version>3.7.1</scopt.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <scalatest.version>3.0.5</scalatest.version>
         <scalactic.version>3.0.5</scalactic.version>
+        <paranamer.version>2.8</paranamer.version>
         <jsr305.version>3.0.2</jsr305.version>
         <guava.version>16.0.1</guava.version>
         <commons-compress.version>1.8.1</commons-compress.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <commons-lang.version>2.6</commons-lang.version>
-        <snappy-java.version>1.1.7.1</snappy-java.version>
+        <snappy-java.version>1.1.7.3</snappy-java.version>
         <fasterxml.jackson.version>2.6.7</fasterxml.jackson.version>
         <fasterxml.jackson-databind.version>2.6.7.1</fasterxml.jackson-databind.version>
         <log4j.version>1.2.17</log4j.version>
@@ -90,12 +90,6 @@
                 <version>${breeze.version}</version>
             </dependency>
             <dependency>
-                <!-- Specify paranamer to avoid java.lang.ArrayIndexOutOfBoundsException: 10582-->
-                <groupId>com.thoughtworks.paranamer</groupId>
-                <artifactId>paranamer</artifactId>
-                <version>${paranamer.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
                 <version>${compiler.scala.version}</version>
@@ -127,6 +121,11 @@
             </dependency>
 
             <!--BEGIN: Dependency convergence-->
+            <dependency>
+                <groupId>com.thoughtworks.paranamer</groupId>
+                <artifactId>paranamer</artifactId>
+                <version>${paranamer.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
