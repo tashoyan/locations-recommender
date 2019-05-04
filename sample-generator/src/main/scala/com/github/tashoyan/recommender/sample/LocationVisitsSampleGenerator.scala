@@ -25,7 +25,7 @@ class LocationVisitsSampleGenerator(
   private val visitsFromTimestamp: OffsetDateTime = sampleYear.atDay(1)
     .atStartOfDay()
     .atOffset(ZoneOffset.UTC)
-  private val visitsIntervalHours: Long = TimeUnit.DAYS.toHours(sampleYear.length().toLong)
+  private val visitsIntervalHours: Long = TimeUnit.DAYS.toHours(sampleYear.length().toLong - 1)
 
   /* Goes somewhere every day over the year */
   private val maxVisitCountsPerPerson: Int = sampleYear.length()
