@@ -45,6 +45,20 @@
         <commons-math3.version>3.6.1</commons-math3.version>
         <scalatest.version>3.0.5</scalatest.version>
         <scalactic.version>3.0.5</scalactic.version>
+        <jsr305.version>3.0.2</jsr305.version>
+        <guava.version>16.0.1</guava.version>
+        <commons-compress.version>1.8.1</commons-compress.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <snappy-java.version>1.1.7.1</snappy-java.version>
+        <fasterxml.jackson.version>2.6.7</fasterxml.jackson.version>
+        <fasterxml.jackson-databind.version>2.6.7.1</fasterxml.jackson-databind.version>
+        <log4j.version>1.2.17</log4j.version>
+        <slf4j.version>1.7.16</slf4j.version>
+        <avro.version>1.8.2</avro.version>
+        <netty.version>3.9.9.Final</netty.version>
+        <commons-codec.version>1.10</commons-codec.version>
+        <activation.version>1.1.1</activation.version>
     </properties>
 
 
@@ -111,6 +125,90 @@
                 <artifactId>scalactic_${compiler.scala.compat.version}</artifactId>
                 <version>${scalactic.version}</version>
             </dependency>
+
+            <!--BEGIN: Dependency convergence-->
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${jsr305.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons-collections.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy-java.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${fasterxml.jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${fasterxml.jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${avro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${activation.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${fasterxml.jackson-databind.version}</version>
+            </dependency>
+            <!--END: Dependency convergence-->
+
         </dependencies>
     </dependencyManagement>
 
@@ -356,7 +454,47 @@
                             </rules>
                         </configuration>
                     </execution>
-                    <!--TODO Other enforcements-->
+                    <execution>
+                        <id>Check transitive dependencies are consistent</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <DependencyConvergence/>
+                            </rules>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Enforce banned dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>commons-logging:commons-logging</exclude>
+                                    </excludes>
+                                    <message>Commons-logging should not be on the classpath. Use jcl-over-slf4j instead.</message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Check no snapshot dependencies in release builds</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireReleaseDeps>
+                                    <message>Should use release versions in releases</message>
+                                    <onlyWhenRelease>true</onlyWhenRelease>
+                                </requireReleaseDeps>
+                            </rules>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
