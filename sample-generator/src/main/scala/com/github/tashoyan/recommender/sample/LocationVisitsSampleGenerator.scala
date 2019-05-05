@@ -47,7 +47,7 @@ class LocationVisitsSampleGenerator(
       .repartition(col("region_id"), col("year_month"))
       .cache()
 
-//    printLocationVisits(locationVisits)
+    //    printLocationVisits(locationVisits)
     assertLocationVisitsCorrect(locationVisits)
     writeLocationVisits(locationVisits)
   }
