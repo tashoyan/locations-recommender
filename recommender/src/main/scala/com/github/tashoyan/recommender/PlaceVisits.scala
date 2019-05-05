@@ -41,6 +41,7 @@ trait PlaceVisits {
         col("person_id"),
         col("timestamp"),
         col("id") as "place_id",
+        col("region_id"),
         col("category_id")
       )
     placeVisits
