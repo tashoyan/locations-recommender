@@ -166,7 +166,7 @@ object SimilarPersonsBuilder {
   )(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
-    val vectorSize: Int = calcRatingVectorSize(ratings, entityIdColumn)
+    val vectorSize: Int = calcRatingVectorSize(ratings.cache(), entityIdColumn)
 
     val ratingsRdd: RDD[(Long, Elem)] = ratings
       .select(
@@ -205,7 +205,6 @@ object SimilarPersonsBuilder {
     import spark.implicits._
 
     val maxId = ratings
-      .cache()
       .select(max(entityIdColumn))
       .as[Long]
       .head()
