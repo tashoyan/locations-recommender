@@ -152,6 +152,10 @@ object SimilarPersonsBuilder {
     vectors
   }
 
+  import scala.collection.mutable
+  //TODO Better name
+  type ElemAgg = mutable.TreeSet[Elem]
+
   //TODO Refactor
   //scalastyle:off
   protected def calcRatingVectors(
@@ -164,8 +168,6 @@ object SimilarPersonsBuilder {
 
     val vectorSize: Int = calcRatingVectorSize(ratings, entityIdColumn)
 
-    println(s"---------------- ratings partitions: ${ratings.rdd.getNumPartitions}")
-
     val ratingsRdd: RDD[(Long, Elem)] = ratings
       .select(
         "person_id",
@@ -175,32 +177,27 @@ object SimilarPersonsBuilder {
       .as[(Long, Long, Long)]
       .rdd
       .map { case (personId, entityId, rating) => (personId, Elem(checkedCast(entityId), rating.toDouble)) }
-    println(s"---------------- ratings RDD partitions: ${ratingsRdd.getNumPartitions}")
 
-    import scala.collection.immutable.TreeSet
-    def zeroAgg: TreeSet[Elem] = new TreeSet[Elem]()
-    def append(agg: TreeSet[Elem], elem: Elem): TreeSet[Elem] = {
-      agg + elem
+    def zeroAgg: ElemAgg = new ElemAgg()
+    def append(agg: ElemAgg, elem: Elem): ElemAgg = {
+      agg += elem
     }
-    def merge(agg1: TreeSet[Elem], agg2: TreeSet[Elem]): TreeSet[Elem] = {
-      agg1 ++ agg2
+    def merge(agg1: ElemAgg, agg2: ElemAgg): ElemAgg = {
+      agg1 ++= agg2
     }
 
     val aggregatedRatingsRdd = ratingsRdd
       .aggregateByKey(zeroAgg, ratingsRdd.getNumPartitions)(append, merge)
-    println(s"---------------- aggregatedRatingsRdd partitions: ${aggregatedRatingsRdd.getNumPartitions}")
 
-    def toSparceVector(agg: TreeSet[Elem]): SparseVector = {
+    def toSparceVector(agg: ElemAgg): SparseVector = {
       val (indexes, values) = agg.map(e => (e.index, e.value)).toArray.unzip
       new SparseVector(vectorSize, indexes, values)
     }
 
     val ratingVectorsRdd: RDD[(Long, SparseVector)] = aggregatedRatingsRdd.mapValues(toSparceVector)
-    println(s"---------------- ratings vector RDD partitions: ${ratingVectorsRdd.getNumPartitions}")
 
     val ratingVector = spark.createDataset[(Long, SparseVector)](ratingVectorsRdd)
       .toDF("person_id", vectorColumn)
-    println(s"---------------- ratings vector partitions: ${ratingVector.rdd.getNumPartitions}")
     ratingVector
   }
 
