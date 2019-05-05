@@ -23,8 +23,11 @@ trait PlaceVisits {
 
     val placeVisits = locationVisits
       .where(col("timestamp") >= visitsFrom)
+      //TODO Consider better partition strategy
+      .repartition(col("person_id"))
       .withColumnRenamed("latitude", "location_latitude")
       .withColumnRenamed("longitude", "location_longitude")
+      //TODO Very inefficient almost cross-join. Introduce a grid with adaptive cell size: more places - less size.
       .join(places, "region_id")
       .where(
         placeIsVisitedUdf(
@@ -37,7 +40,6 @@ trait PlaceVisits {
       .select(
         col("person_id"),
         col("timestamp"),
-        col("year_month"),
         col("id") as "place_id",
         col("category_id")
       )
