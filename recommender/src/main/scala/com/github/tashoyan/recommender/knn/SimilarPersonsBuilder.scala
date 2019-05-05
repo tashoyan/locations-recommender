@@ -1,11 +1,12 @@
 package com.github.tashoyan.recommender.knn
 
-import Distance.cosineSimilarity
-import SimilarPersonsBuilder._
+import com.github.tashoyan.recommender.knn.Distance._
+import com.github.tashoyan.recommender.knn.SimilarPersonsBuilder._
 import org.apache.spark.ml.linalg.SparseVector
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class SimilarPersonsBuilder(
     placeWeight: Double,
@@ -20,7 +21,7 @@ class SimilarPersonsBuilder(
   def calcSimilarPersons(
       placeRatings: DataFrame,
       categoryRatings: DataFrame
-  ): DataFrame = {
+  )(implicit spark: SparkSession): DataFrame = {
     val placeBasedSimilarities = calcPlaceBasedSimilarities(placeRatings)
     val categoryBasedSimilarities = calcCategoryBasedSimilarities(categoryRatings)
 
@@ -29,7 +30,7 @@ class SimilarPersonsBuilder(
     similarPersons
   }
 
-  private def calcPlaceBasedSimilarities(placeRatings: DataFrame): DataFrame = {
+  private def calcPlaceBasedSimilarities(placeRatings: DataFrame)(implicit spark: SparkSession): DataFrame = {
     calcSimilarities(
       placeRatings,
       entityIdColumn = "place_id",
@@ -38,7 +39,7 @@ class SimilarPersonsBuilder(
     )
   }
 
-  private def calcCategoryBasedSimilarities(categoryRatings: DataFrame): DataFrame = {
+  private def calcCategoryBasedSimilarities(categoryRatings: DataFrame)(implicit spark: SparkSession): DataFrame = {
     calcSimilarities(
       categoryRatings,
       entityIdColumn = "category_id",
@@ -78,7 +79,7 @@ object SimilarPersonsBuilder {
       entityIdColumn: String,
       ratingColumn: String,
       similarityColumn: String
-  ): DataFrame = {
+  )(implicit spark: SparkSession): DataFrame = {
     val ratingVectors = calcRatingVectors(
       ratings,
       entityIdColumn,
@@ -94,6 +95,7 @@ object SimilarPersonsBuilder {
     }
     (ratingVectors crossJoin thatRatingVectors)
       .where(col("person_id") =!= col("that_person_id"))
+      .coalesce(ratings.rdd.getNumPartitions)
       .withColumn(similarityColumn, similarityUdf(col("rating_vector"), col("that_rating_vector")))
       .where(col(similarityColumn) > 0)
       .select(
@@ -103,19 +105,20 @@ object SimilarPersonsBuilder {
       )
   }
 
-  private def calcRatingVectors(
+  protected def calcRatingVectors1(
       ratings: DataFrame,
       entityIdColumn: String,
       ratingColumn: String,
       vectorColumn: String
-  ): DataFrame = {
+  )(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
     val maxId = ratings
       .cache()
       .select(max(entityIdColumn))
+      .as[Long]
       .head()
-      .getLong(0)
-      .toInt
-    val vectorSize = maxId + 1
+    val vectorSize = maxId.toInt + 1
 
     def checkedCast(l: Long): Int = {
       if (l.isValidInt)
@@ -149,4 +152,79 @@ object SimilarPersonsBuilder {
     vectors
   }
 
+  //TODO Refactor
+  //scalastyle:off
+  protected def calcRatingVectors(
+      ratings: DataFrame,
+      entityIdColumn: String,
+      ratingColumn: String,
+      vectorColumn: String
+  )(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
+
+    val vectorSize: Int = calcRatingVectorSize(ratings, entityIdColumn)
+
+    println(s"---------------- ratings partitions: ${ratings.rdd.getNumPartitions}")
+
+    val ratingsRdd: RDD[(Long, Elem)] = ratings
+      .select(
+        "person_id",
+        entityIdColumn,
+        ratingColumn
+      )
+      .as[(Long, Long, Long)]
+      .rdd
+      .map { case (personId, entityId, rating) => (personId, Elem(checkedCast(entityId), rating.toDouble)) }
+    println(s"---------------- ratings RDD partitions: ${ratingsRdd.getNumPartitions}")
+
+    import scala.collection.immutable.TreeSet
+    def zeroAgg: TreeSet[Elem] = new TreeSet[Elem]()
+    def append(agg: TreeSet[Elem], elem: Elem): TreeSet[Elem] = {
+      agg + elem
+    }
+    def merge(agg1: TreeSet[Elem], agg2: TreeSet[Elem]): TreeSet[Elem] = {
+      agg1 ++ agg2
+    }
+
+    val aggregatedRatingsRdd = ratingsRdd
+      .aggregateByKey(zeroAgg, ratingsRdd.getNumPartitions)(append, merge)
+    println(s"---------------- aggregatedRatingsRdd partitions: ${aggregatedRatingsRdd.getNumPartitions}")
+
+    def toSparceVector(agg: TreeSet[Elem]): SparseVector = {
+      val (indexes, values) = agg.map(e => (e.index, e.value)).toArray.unzip
+      new SparseVector(vectorSize, indexes, values)
+    }
+
+    val ratingVectorsRdd: RDD[(Long, SparseVector)] = aggregatedRatingsRdd.mapValues(toSparceVector)
+    println(s"---------------- ratings vector RDD partitions: ${ratingVectorsRdd.getNumPartitions}")
+
+    val ratingVector = spark.createDataset[(Long, SparseVector)](ratingVectorsRdd)
+      .toDF("person_id", vectorColumn)
+    println(s"---------------- ratings vector partitions: ${ratingVector.rdd.getNumPartitions}")
+    ratingVector
+  }
+
+  private def calcRatingVectorSize(ratings: DataFrame, entityIdColumn: String)(implicit spark: SparkSession): Int = {
+    import spark.implicits._
+
+    val maxId = ratings
+      .cache()
+      .select(max(entityIdColumn))
+      .as[Long]
+      .head()
+    val vectorSize = checkedCast(maxId) + 1
+    vectorSize
+  }
+
+  private def checkedCast(l: Long): Int = {
+    if (l.isValidInt)
+      l.toInt
+    else
+      throw new ArithmeticException(s"Index out of Int range: $l")
+  }
+
+}
+case class Elem(index: Int, value: Double)
+object Elem {
+  implicit val elemOrdering: Ordering[Elem] = Ordering.by(_.index)
 }
