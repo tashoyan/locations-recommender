@@ -108,60 +108,13 @@ object SimilarPersonsBuilder {
       )
   }
 
-  protected def calcRatingVectors1(
-      ratings: DataFrame,
-      entityIdColumn: String,
-      ratingColumn: String,
-      vectorColumn: String
-  )(implicit spark: SparkSession): DataFrame = {
-    import spark.implicits._
-
-    val maxId = ratings
-      .cache()
-      .select(max(entityIdColumn))
-      .as[Long]
-      .head()
-    val vectorSize = maxId.toInt + 1
-
-    def checkedCast(l: Long): Int = {
-      if (l.isValidInt)
-        l.toInt
-      else
-        throw new ArithmeticException(s"Index out of Int range: $l")
-    }
-    val createVectorUdf = udf { (indexes: Seq[Long], values: Seq[Long]) =>
-      new SparseVector(
-        size = vectorSize,
-        indices = indexes
-          .map(checkedCast)
-          .toArray,
-        values = values
-          .map(_.toDouble)
-          .toArray
-      )
-    }
-    //TODO It can be done more efficiently with a custom aggregation function: collect_sparse_vector()
-    val vectors = ratings
-      .orderBy("person_id", entityIdColumn)
-      .groupBy("person_id")
-      .agg(
-        collect_list(entityIdColumn) as "indexes",
-        collect_list(ratingColumn) as "values"
-      )
-      .select(
-        col("person_id"),
-        createVectorUdf(col("indexes"), col("values")) as vectorColumn
-      )
-    vectors
-  }
-
   import scala.collection.mutable
   //TODO Better name
   type ElemAgg = mutable.TreeSet[Elem]
 
   //TODO Refactor
   //scalastyle:off
-  protected def calcRatingVectors(
+  private def calcRatingVectors(
       ratings: DataFrame,
       entityIdColumn: String,
       ratingColumn: String,
