@@ -112,8 +112,6 @@ object SimilarPersonsBuilder {
   //TODO Better name
   type ElemAgg = mutable.TreeSet[Elem]
 
-  //TODO Refactor
-  //scalastyle:off
   private def calcRatingVectors(
       ratings: DataFrame,
       entityIdColumn: String,
