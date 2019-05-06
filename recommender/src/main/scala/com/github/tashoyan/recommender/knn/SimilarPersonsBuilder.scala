@@ -86,6 +86,8 @@ object SimilarPersonsBuilder {
       ratingColumn,
       vectorColumn = "rating_vector"
     )
+      //TODO Check if cache is really needed
+      .cache()
 
     val thatRatingVectors = ratingVectors
       .withColumnRenamed("person_id", "that_person_id")
@@ -95,6 +97,7 @@ object SimilarPersonsBuilder {
     }
     (ratingVectors crossJoin thatRatingVectors)
       .where(col("person_id") =!= col("that_person_id"))
+      //TODO This coalesce is added to avoid too many partitions produced by crossJoin. Remove after reimplementing.
       .coalesce(ratings.rdd.getNumPartitions)
       .withColumn(similarityColumn, similarityUdf(col("rating_vector"), col("that_rating_vector")))
       .where(col(similarityColumn) > 0)
