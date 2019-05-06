@@ -24,8 +24,8 @@ spark-submit \
 --name "$app_name" \
 --properties-file "$spark_config_file" \
 --files "$log_config_file#$remote_log_config_file" \
---conf "spark.driver.extraJavaOptions=-Dlog4j.configuration=file://$remote_log_config_file" \
---conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=file://$remote_log_config_file" \
+--conf "spark.driver.extraJavaOptions=-Dlog4j.configuration=$remote_log_config_file" \
+--conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=$remote_log_config_file" \
 --class com.github.tashoyan.recommender.knn.SimilarPersonsBuilderMain \
 "$jar_file" \
 --data-dir "$data_dir" \
