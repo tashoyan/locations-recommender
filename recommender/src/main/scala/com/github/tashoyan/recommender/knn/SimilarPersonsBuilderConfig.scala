@@ -1,5 +1,6 @@
 package com.github.tashoyan.recommender.knn
 
+@deprecated(message = "don't use", since = "now")
 case class SimilarPersonsBuilderConfig(
     dataDir: String = "",
     lastDaysCount: Int = 0,

@@ -8,6 +8,7 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+@deprecated(message = "don't use", since = "now")
 class SimilarPersonsBuilder(
     placeWeight: Double,
     categoryWeight: Double,

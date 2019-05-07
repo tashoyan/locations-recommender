@@ -34,8 +34,17 @@ object DataUtils {
     generateFileName(regionIds, dirPath, "stochastic_graph")
   }
 
+  @deprecated(message = "don't use", since = "now")
   def generateSimilarPersonsFileName(regionIds: Seq[Long], dirPath: String): String = {
     generateFileName(regionIds, dirPath, "similar_persons")
+  }
+
+  def generatePlaceRatingVectorsFileName(regionIds: Seq[Long], dirPath: String): String = {
+    generateFileName(regionIds, dirPath, "place_rating_vectors")
+  }
+
+  def generateCategoryRatingVectorsFileName(regionIds: Seq[Long], dirPath: String): String = {
+    generateFileName(regionIds, dirPath, "category_rating_vectors")
   }
 
   def generatePlaceRatingsFileName(regionIds: Seq[Long], dirPath: String): String = {

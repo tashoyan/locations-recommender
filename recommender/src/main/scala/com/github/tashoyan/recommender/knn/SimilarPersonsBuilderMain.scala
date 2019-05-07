@@ -3,6 +3,7 @@ package com.github.tashoyan.recommender.knn
 import com.github.tashoyan.recommender.{DataUtils, PlaceVisits}
 import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
+@deprecated(message = "don't use", since = "now")
 object SimilarPersonsBuilderMain extends SimilarPersonsBuilderArgParser with PlaceVisits {
 
   def main(args: Array[String]): Unit = {

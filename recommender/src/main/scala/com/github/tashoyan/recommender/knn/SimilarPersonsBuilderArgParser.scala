@@ -2,6 +2,7 @@ package com.github.tashoyan.recommender.knn
 
 import scopt.OptionParser
 
+@deprecated(message = "don't use", since = "now")
 trait SimilarPersonsBuilderArgParser {
 
   val parser: OptionParser[SimilarPersonsBuilderConfig] = new OptionParser[SimilarPersonsBuilderConfig]("similar-persons-builder") {

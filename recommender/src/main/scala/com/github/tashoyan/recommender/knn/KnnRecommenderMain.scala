@@ -7,6 +7,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
+@deprecated(message = "don't use", since = "now")
 object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCommon {
 
   def main(args: Array[String]): Unit = {

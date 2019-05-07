@@ -9,6 +9,7 @@ object RatingsBuilder {
   private val visitedPlacesTopN: Int = 100
   private val visitedCategoriesTopN: Int = 10
 
+  @deprecated(message = "don't use", since = "now")
   def calcPlaceRatings(placeVisits: DataFrame): DataFrame = {
     calcRatings(
       placeVisits,
@@ -18,6 +19,7 @@ object RatingsBuilder {
     )
   }
 
+  @deprecated(message = "don't use", since = "now")
   def calcCategoryRatings(placeVisits: DataFrame): DataFrame = {
     calcRatings(
       placeVisits,
@@ -27,7 +29,7 @@ object RatingsBuilder {
     )
   }
 
-  private def calcRatings(
+  def calcRatings(
       placeVisits: DataFrame,
       entityIdColumn: String,
       ratingColumn: String,
