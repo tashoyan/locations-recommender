@@ -17,7 +17,7 @@ fi
 
 app_name="$(basename $0)"
 conf_dir="$base_dir/conf"
-log_config_file="$conf_dir/log4j-cluster.xml"
+log_config_file="$conf_dir/log4j.xml"
 remote_log_config_file="log4j.xml"
 spark_config_file="$conf_dir/spark-yarn-cluster.conf"
 spark-submit \
