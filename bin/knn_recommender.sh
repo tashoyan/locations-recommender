@@ -32,5 +32,5 @@ spark-submit \
 --data-dir "$data_dir" \
 --place-weight 0.5 \
 --category-weight 0.5 \
---k-nearest 1000 \
+--k-nearest 2000000 \
 --max-recommendations 10
