@@ -19,7 +19,7 @@ app_name="$(basename $0)"
 conf_dir="$base_dir/conf"
 log_config_file="$conf_dir/log4j-client.xml"
 log_dir="$base_dir/log"
-spark_config_file="$conf_dir/spark-client.conf"
+spark_config_file="$conf_dir/spark-yarn-client.conf"
 spark-submit \
 --name "$app_name" \
 --properties-file "$spark_config_file" \
