@@ -7,7 +7,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
-@deprecated(message = "don't use", since = "now")
 object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCommon {
 
   def main(args: Array[String]): Unit = {
@@ -53,10 +52,39 @@ object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCo
 
   private def makeRecommendations(recommenderTarget: RecommenderTarget)(implicit spark: SparkSession, config: KnnRecommenderConfig): Try[DataFrame] = {
     val regionIds = Seq(recommenderTarget.homeRegionId, recommenderTarget.targetRegionId)
-    val similarPersons = loadSimilarPersons(regionIds)
+    val placeRatingVectors = loadPlaceRatingVectors(regionIds)
+    val categoryRatingVectors = loadCategoryRatingVectors(regionIds)
     val placeRatings = loadPlaceRatings(regionIds)
-    val recommender = new KnnRecommender(similarPersons, placeRatings)
+    val recommender = new KnnRecommender(
+      placeRatingVectors = placeRatingVectors,
+      categoryRatingVectors = categoryRatingVectors,
+      placeRatings = placeRatings,
+      placeWeight = config.placeWeight,
+      categoryWeight = config.categoryWeight,
+      kNearest = config.kNearest
+    )
     Try(recommender.makeRecommendations(recommenderTarget.personId))
+  }
+
+  private def loadPlaceRatingVectors(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
+    val fileName = DataUtils.generatePlaceRatingVectorsFileName(regionIds, config.dataDir)
+    Console.out.println(s"Loading place rating vectors from $fileName")
+    spark.read
+      .parquet(fileName)
+  }
+
+  private def loadCategoryRatingVectors(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
+    val fileName = DataUtils.generateCategoryRatingVectorsFileName(regionIds, config.dataDir)
+    Console.out.println(s"Loading category rating vectors from $fileName")
+    spark.read
+      .parquet(fileName)
+  }
+
+  private def loadPlaceRatings(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
+    val fileName = DataUtils.generatePlaceRatingsFileName(regionIds, config.dataDir)
+    Console.out.println(s"Loading place ratings from $fileName")
+    spark.read
+      .parquet(fileName)
   }
 
   private def printRecommendations(
@@ -74,20 +102,6 @@ object KnnRecommenderMain extends KnnRecommenderArgParser with RecommenderMainCo
 
     Console.out.println(s"Person ${recommenderTarget.personId} might want to visit in region $targetRegionId:")
     recommendedPlaces.show(false)
-  }
-
-  private def loadSimilarPersons(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
-    val fileName = DataUtils.generateSimilarPersonsFileName(regionIds, config.dataDir)
-    Console.out.println(s"Loading similar persons from $fileName")
-    spark.read
-      .parquet(fileName)
-  }
-
-  private def loadPlaceRatings(regionIds: Seq[Long])(implicit spark: SparkSession, config: KnnRecommenderConfig): DataFrame = {
-    val fileName = DataUtils.generatePlaceRatingsFileName(regionIds, config.dataDir)
-    Console.out.println(s"Loading place ratings from $fileName")
-    spark.read
-      .parquet(fileName)
   }
 
 }
