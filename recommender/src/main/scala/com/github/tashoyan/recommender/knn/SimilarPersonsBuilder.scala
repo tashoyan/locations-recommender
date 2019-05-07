@@ -80,11 +80,14 @@ object SimilarPersonsBuilder {
       ratingColumn: String,
       similarityColumn: String
   )(implicit spark: SparkSession): DataFrame = {
-    val ratingVectors = calcRatingVectors(
+    val vectorSize: Int = calcRatingVectorSize(ratings.cache(), entityIdColumn)
+
+    val ratingVectors = aggRatingVectors(
       ratings,
       entityIdColumn,
       ratingColumn,
-      vectorColumn = "rating_vector"
+      vectorColumn = "rating_vector",
+      vectorSize
     )
       //TODO Check if cache is really needed
       .cache()
@@ -112,15 +115,14 @@ object SimilarPersonsBuilder {
   //TODO Better name
   type ElemAgg = mutable.TreeSet[Elem]
 
-  private def calcRatingVectors(
+  private def aggRatingVectors(
       ratings: DataFrame,
       entityIdColumn: String,
       ratingColumn: String,
-      vectorColumn: String
+      vectorColumn: String,
+      vectorSize: Int
   )(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
-
-    val vectorSize: Int = calcRatingVectorSize(ratings.cache(), entityIdColumn)
 
     val ratingsRdd: RDD[(Long, Elem)] = ratings
       .select(
@@ -132,16 +134,8 @@ object SimilarPersonsBuilder {
       .rdd
       .map { case (personId, entityId, rating) => (personId, Elem(checkedCast(entityId), rating.toDouble)) }
 
-    def zeroAgg: ElemAgg = new ElemAgg()
-    def append(agg: ElemAgg, elem: Elem): ElemAgg = {
-      agg += elem
-    }
-    def merge(agg1: ElemAgg, agg2: ElemAgg): ElemAgg = {
-      agg1 ++= agg2
-    }
-
     val aggregatedRatingsRdd = ratingsRdd
-      .aggregateByKey(zeroAgg, ratingsRdd.getNumPartitions)(append, merge)
+      .aggregateByKey(new ElemAgg(), ratingsRdd.getNumPartitions)(_ += _, _ ++= _)
 
     def toSparceVector(agg: ElemAgg): SparseVector = {
       val (indexes, values) = agg.map(e => (e.index, e.value)).toArray.unzip
@@ -150,9 +144,9 @@ object SimilarPersonsBuilder {
 
     val ratingVectorsRdd: RDD[(Long, SparseVector)] = aggregatedRatingsRdd.mapValues(toSparceVector)
 
-    val ratingVector = spark.createDataset[(Long, SparseVector)](ratingVectorsRdd)
+    val ratingVectors = spark.createDataset[(Long, SparseVector)](ratingVectorsRdd)
       .toDF("person_id", vectorColumn)
-    ratingVector
+    ratingVectors
   }
 
   private def calcRatingVectorSize(ratings: DataFrame, entityIdColumn: String)(implicit spark: SparkSession): Int = {
