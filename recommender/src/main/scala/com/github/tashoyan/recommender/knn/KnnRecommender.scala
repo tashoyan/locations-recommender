@@ -7,12 +7,12 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{col, sum, udf}
 
 class KnnRecommender(
-                      placeRatingVectors: DataFrame,
-                      categoryRatingVectors: DataFrame,
-                      placeRatings: DataFrame,
-                      placeWeight: Double,
-                      categoryWeight: Double,
-                      kNearest: Int
+    placeRatingVectors: DataFrame,
+    categoryRatingVectors: DataFrame,
+    placeRatings: DataFrame,
+    placeWeight: Double,
+    categoryWeight: Double,
+    kNearest: Int
 ) {
   require(placeWeight > 0 && placeWeight < 1.0, s"Place weight must be in the interval (0; 1): $placeWeight")
   require(categoryWeight > 0 && categoryWeight < 1.0, s"Category weight must be in the interval (0; 1): $categoryWeight")
@@ -40,8 +40,8 @@ class KnnRecommender(
       .na.fill(0.0, Seq("place_similarity", "category_similarity"))
       .select(
         col("person_id"),
-        col("place_based_similarity") * placeWeight +
-          col("category_based_similarity") * categoryWeight
+        col("place_similarity") * placeWeight +
+          col("category_similarity") * categoryWeight
           as "similarity"
       )
       .orderBy(col("similarity").desc)
@@ -51,13 +51,12 @@ class KnnRecommender(
   private def makeRecommendations0(personId: Long, similarPersons: DataFrame): DataFrame = {
     val otherPersonsPlaceRatings = placeRatings
       .where(col("person_id") =!= personId)
-      .withColumnRenamed("person_id", "that_person_id")
 
     val similarPersonPlaceRaitings = otherPersonsPlaceRatings
-      .join(similarPersons, "that_person_id")
+      .join(similarPersons, "person_id")
 
     val estimatedPlaceRatings = similarPersonPlaceRaitings
-      .withColumn("weighted_rating", col("place_rating") * col("similarity"))
+      .withColumn("weighted_rating", col("rating") * col("similarity"))
       .groupBy("place_id")
       .agg(
         sum("weighted_rating") as "weighted_rating_sum",
