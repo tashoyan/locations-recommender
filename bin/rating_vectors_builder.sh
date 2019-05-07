@@ -17,9 +17,9 @@ fi
 
 app_name="$(basename $0)"
 conf_dir="$base_dir/conf"
-log_config_file="$conf_dir/log4j.xml"
+log_config_file="$conf_dir/log4j-cluster.xml"
 remote_log_config_file="log4j.xml"
-spark_config_file="$conf_dir/spark.conf"
+spark_config_file="$conf_dir/spark-cluster.conf"
 spark-submit \
 --name "$app_name" \
 --properties-file "$spark_config_file" \
