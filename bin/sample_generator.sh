@@ -28,5 +28,5 @@ spark-submit \
 --class com.github.tashoyan.recommender.sample.SampleGeneratorMain \
 "$jar_file" \
 --data-dir "$data_dir" \
---place-count 300 \
---person-count 3000
+--place-count 30000 \
+--person-count 3000000
