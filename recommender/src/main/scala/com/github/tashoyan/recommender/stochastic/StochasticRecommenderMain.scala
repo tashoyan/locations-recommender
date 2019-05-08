@@ -75,7 +75,9 @@ object StochasticRecommenderMain extends StochasticRecommenderArgParser with Rec
       .limit(config.maxRecommendations)
 
     Console.out.println(s"Person ${recommenderTarget.personId} might want to visit in region $targetRegionId:")
+    val t0 = System.currentTimeMillis()
     recommendedPlaces.show(false)
+    println(s"Done in ${System.currentTimeMillis() - t0} milliseconds")
   }
 
   private def loadStochasticGraph(regionIds: Seq[Long])(implicit spark: SparkSession, config: StochasticRecommenderConfig): DataFrame = {
