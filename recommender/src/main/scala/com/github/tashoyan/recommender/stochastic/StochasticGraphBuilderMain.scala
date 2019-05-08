@@ -27,7 +27,7 @@ object StochasticGraphBuilderMain extends StochasticGraphBuilderArgParser with P
     Console.out.println("Generating place visits")
     val placeVisits = calcPlaceVisits(locationVisits, places, config.lastDaysCount)
       .cache()
-    printPlaceVisits(placeVisits)
+    //    printPlaceVisits(placeVisits)
     writePlaceVisits(placeVisits, config.dataDir)
 
     generateRegionGraphs(placeVisits, places)
