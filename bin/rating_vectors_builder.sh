@@ -29,6 +29,6 @@ spark-submit \
 --class com.github.tashoyan.recommender.knn.RatingVectorsBuilderMain \
 "$jar_file" \
 --data-dir "$data_dir" \
---last-days-count 180 \
+--last-days-count 7 \
 --max-rated-places 100 \
 --max-rated-categories 10
