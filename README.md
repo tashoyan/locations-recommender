@@ -35,7 +35,7 @@ This matrix satisfies the stochastic condition:
 ```text
 P(i, 1) + P(i, 2) + ... + P(i, N) = 1 for any vertex i
 ```
-The vector `x` is the stationary probability vectorof size `N`,
+The vector `x` is the stationary probability vector of size `N`,
 with `x(j)` element denoting the probability to come to vertex `j`.
 
 The SG-based recommender consists of two components: stochastic graph builder and the recommender itself.
@@ -88,6 +88,9 @@ Then hit Enter to start computations:
 ```text
 (CTRL-C for exit) <person ID>[ <region ID>]: 1060040 0
 ```
+The recommender will output the places recommended to this person
+in the decreasing order of probability.
+
 To retrieve possible identifiers of persons and regions,
 use Spark shell and query the generated samples:
 `data/persons_sample` and `data/place_samples`.
@@ -98,3 +101,78 @@ Instead, it creates graphs for each region and graphs for each pair of regions.
 This is done for better scalability.
 Per-region graphs are used to recommend places within a person's home region.
 In addition, pairwise region graphs are used to recommend places in a non-home region.
+
+## Recommender based on K nearest neighbors
+
+[KNN algorithm](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm) estimates
+an unknown feature value as an average over K nearest points with known feature values.
+KNN-based recommender builds two feature vectors (rating vectors) for each person:
+
+- place ratings vector: x(i), where x(i) is the rating given by the person to the place i
+- category ratings vector: x(i), where x(i) is the rating given by the person to the place category i
+
+Place or category rating is the number of visits made by this person during some time interval (e.g. one week).
+Note that rating vectors are very sparse, because a person visits only a small subset of all possible places.
+
+The distance between two persons `p1` and `p2` is expressed
+in terms of [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity)
+between their respective rating vectors:
+```text
+similarity(p1, p2) = place_weight * place_similarity(p1, p2) + category_weight * category_similarity(p1, p2)
+```
+Here `place_similarity(p1, p2)` and `category_similarity(p1, p2)` are the cosine similarities
+between place and category rating vectors of the two persons.
+
+As the name of the algorithm suggests, only `K` most similar persons are processed for a target person.
+
+For a target person `p`, the estimated rating of a place `i` is calculated according to the formula:
+```text
+estimated_rating(p, i) = [rating(p1, i) * similarity(p, p1) + ... + rating(pK, i) * similarity(p, pK)] / [similarity(p, p1) + ... + similarity(p, pK)]
+```
+
+The KNN-based recommender consists of two components: rating vectors builder and the recommender itself.
+
+### Rating vectors builder
+
+To build the rating vectors, run the command:
+```bash
+./bin/rating_vectors_builder.sh
+```
+
+### KNN recommender
+
+To run the KNN recommender, execute the command:
+```bash
+./bin/knn_recommender.sh
+```
+The user interface is pretty much the same as for the SG recommender:
+```text
+(CTRL-C for exit) <person ID>[ <region ID>]: 1060040 0
+```
+The recommender will output the places recommended to this person
+in the decreasing order of estimated rating.
+
+Similarly to SG-based recommender,
+rating vectors are generated separately for each region and for each pair of regions.
+The idea is the same - avoid huge data sets and improve scalability.
+
+## Place deduplicator
+
+*Not completed yet*
+
+The data set of places is supposed to be user-generated content.
+Persons may enter new places they have just visited.
+Such content may contain user mistakes, for example:
+
+- typos in place names
+- imprecise place coordinates
+
+Place Deduplicator is a tool to detect and resolve place duplicates.
+It uses the following algorithm: if two places have close locations and similar names,
+then they are marked as a duplicate of the same place.
+To check if the two places have close locations,
+Place Deduplicator calculates the distance between them
+and compares it with a threshold.
+To check if the two places have similar names,
+the tool calculates the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
+between their names and compares with a threshold.
