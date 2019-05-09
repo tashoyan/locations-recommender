@@ -6,6 +6,13 @@ Two implementations are currently available:
 - stochastic graph (SG)
 - K nearest neighbors (KNN)
 
+## Building the code
+
+Use Maven to build the code:
+```text
+mvn clean install
+```
+
 ## Generating samples
 
 Both Visit Recommender implementations require the following data:
