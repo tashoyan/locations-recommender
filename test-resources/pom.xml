@@ -29,12 +29,6 @@
             <!--Scope is compile, because this module is a utility to be used with scope test-->
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.scalactic</groupId>
-            <artifactId>scalactic_${compiler.scala.compat.version}</artifactId>
-            <!--Scope is compile, because this module is a utility to be used with scope test-->
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
 </project>

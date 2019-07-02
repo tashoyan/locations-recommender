@@ -1,12 +1,12 @@
 package com.github.tashoyan.recommender.stochastic
 
 import com.github.tashoyan.recommender.test.SparkTestHarness
-import org.apache.spark.sql.DataFrame
-import org.scalatest.FunSuite
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.Matchers._
+import org.scalatest.fixture
 
 //TODO Tests on corner cases (zero epsilon, maxIterations)
-class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
+class StochasticRecommenderTest extends fixture.FunSuite with SparkTestHarness {
 
   private val sample = Seq(
     (1L, 2L, 0.4),
@@ -31,18 +31,16 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
     }
   }
 
-  private def stochasticEdges(): DataFrame = {
-    val spark0 = spark
-    import spark0.implicits._
+  private def stochasticEdges(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
     sample.toDF("source_id", "target_id", "balanced_weight")
   }
 
-  test("makeRecommendations - 1 iteration") {
-    val spark0 = spark
-    import spark0.implicits._
+  test("makeRecommendations - 1 iteration") { implicit spark: SparkSession =>
+    import spark.implicits._
 
     val recommender = new StochasticRecommender(
-      stochasticEdges(),
+      stochasticEdges,
       epsilon = 0.01,
       maxIterations = 1
     )
@@ -61,12 +59,11 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
     recommendations should be(expectedRecommendations)
   }
 
-  test("makeRecommendations - converge") {
-    val spark0 = spark
-    import spark0.implicits._
+  test("makeRecommendations - converge") { implicit spark: SparkSession =>
+    import spark.implicits._
 
     val recommender = new StochasticRecommender(
-      stochasticEdges(),
+      stochasticEdges,
       epsilon = 0.05,
       maxIterations = 1000
     )
@@ -85,9 +82,9 @@ class StochasticRecommenderTest extends FunSuite with SparkTestHarness {
     recommendations should be(expectedRecommendations)
   }
 
-  test("makeRecommendations - non-existing vertex") {
+  test("makeRecommendations - non-existing vertex") { implicit spark: SparkSession =>
     val recommender = new StochasticRecommender(
-      stochasticEdges(),
+      stochasticEdges,
       epsilon = 0.05,
       maxIterations = 1000
     )
