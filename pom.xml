@@ -529,12 +529,6 @@
                     <missing>src/main/java</missing>
                 </file>
             </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-library</artifactId>
-                </dependency>
-            </dependencies>
 
             <build>
                 <plugins>
