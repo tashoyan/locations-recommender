@@ -2,6 +2,8 @@
 
 Recommender system that suggests people what places to visit.
 
+[![Build Status](https://travis-ci.com/tashoyan/visit-recommender.svg?branch=master)](https://travis-ci.com/tashoyan/visit-recommender)
+
 Two implementations are currently available:
 - stochastic graph (SG)
 - K nearest neighbors (KNN)
