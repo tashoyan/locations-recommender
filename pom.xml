@@ -22,7 +22,7 @@
         <compiler.scala.version>2.12.8</compiler.scala.version>
         <compiler.scala.compat.version>2.12</compiler.scala.compat.version>
 
-        <scalariform-maven-plugin.version>0.2.2</scalariform-maven-plugin.version>
+        <scalariform-maven-plugin.version>0.2.3</scalariform-maven-plugin.version>
         <scalastyle-maven-plugin.version>1.0.0</scalastyle-maven-plugin.version>
         <scala-maven-plugin.version>3.3.2</scala-maven-plugin.version>
         <scalatest-maven-plugin.version>2.0.0</scalatest-maven-plugin.version>
@@ -232,6 +232,7 @@
                         <placeScaladocAsterisksBeneathSecondAsterisk>true</placeScaladocAsterisksBeneathSecondAsterisk>
                         <singleCasePatternOnNewline>false</singleCasePatternOnNewline>
                         <spacesAroundMultiImports>false</spacesAroundMultiImports>
+                        <useUnicodeArrows>false</useUnicodeArrows>
                     </configuration>
                 </plugin>
 
