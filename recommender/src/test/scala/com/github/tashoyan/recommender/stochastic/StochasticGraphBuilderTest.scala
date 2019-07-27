@@ -1,14 +1,14 @@
 package com.github.tashoyan.recommender.stochastic
 
 import com.github.tashoyan.recommender.test.SparkTestHarness
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.sum
-import org.scalatest.FunSuite
+import org.scalatest.fixture
 
-class StochasticGraphBuilderTest extends FunSuite with SparkTestHarness {
+class StochasticGraphBuilderTest extends fixture.FunSuite with SparkTestHarness {
 
-  test("buildWithBalancedWeights") {
-    val spark0 = spark
-    import spark0.implicits._
+  test("buildWithBalancedWeights") { spark: SparkSession =>
+    import spark.implicits._
 
     val betas = Seq(
       0.4, //person - place

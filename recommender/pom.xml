@@ -40,7 +40,13 @@
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.scopt</groupId>

@@ -1,12 +1,12 @@
 package com.github.tashoyan.recommender.deduplicator
 
 import com.github.tashoyan.recommender.test.SparkTestHarness
-import org.apache.spark.sql.DataFrame
-import org.scalatest.FunSuite
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.Inside._
 import org.scalatest.Matchers._
+import org.scalatest.fixture
 
-class PlaceDeduplicatorTest extends FunSuite with SparkTestHarness {
+class PlaceDeduplicatorTest extends fixture.FunSuite with SparkTestHarness {
 
   private val placeColumns = Array("region_id", "id", "name", "latitude", "longitude")
 
@@ -14,16 +14,14 @@ class PlaceDeduplicatorTest extends FunSuite with SparkTestHarness {
     (0L, 1L, "Ryumochnaya v Zuzino", 55.656892, 37.596852)
   )
 
-  private def confirmedPlacesDf: DataFrame = {
-    val spark0 = spark
-    import spark0.implicits._
+  private def confirmedPlacesDf(implicit spark: SparkSession): DataFrame = {
+    import spark.implicits._
     confirmedPlaces
       .toDF(placeColumns: _*)
   }
 
-  test("dropDuplicates") {
-    val spark0 = spark
-    import spark0.implicits._
+  test("dropDuplicates") { implicit spark: SparkSession =>
+    import spark.implicits._
     val placesDf = Seq(
       /* Misspelled name */
       (0L, 101L, "rumochnaya zuzino", 55.656892, 37.596852),
