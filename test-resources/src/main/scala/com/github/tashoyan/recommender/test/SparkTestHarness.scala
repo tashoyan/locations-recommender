@@ -58,7 +58,7 @@ import org.scalatest.{Outcome, fixture}
   * </ul>
   * Hence, a Spark Session with Hive support can be created only once and reused across all unit tests.
   */
-trait SparkTestHarness extends fixture.FunSuite with OnSparkCreate {
+trait SparkTestHarness extends fixture.TestSuite with OnSparkCreate {
 
   protected val defaultSparkSettings: Map[String, String] = Map(
     "spark.master" -> "local[4]",
