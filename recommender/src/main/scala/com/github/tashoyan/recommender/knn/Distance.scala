@@ -1,7 +1,6 @@
 package com.github.tashoyan.recommender.knn
 
 import org.apache.spark.ml.linalg.SparseVector
-import Vectors.RichSparseVector
 
 object Distance {
 

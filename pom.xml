@@ -38,75 +38,195 @@
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
 
-    <spark.version>2.4.2</spark.version>
-    <breeze.version>0.13.2</breeze.version>
+    <spark.version>3.0.1</spark.version>
+
+    <!--BEGIN: Spark BOM-->
+    <scala-xml.version>1.2.0</scala-xml.version>
+    <commons-collections.version>3.2.2</commons-collections.version>
+    <commons-compress.version>1.8.1</commons-compress.version>
+    <commons-codec.version>1.10</commons-codec.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <commons-lang3.version>3.9</commons-lang3.version>
+    <commons-math3.version>3.4.1</commons-math3.version>
+    <guava.version>14.0.1</guava.version>
+    <snappy-java.version>1.1.7.5</snappy-java.version>
+    <activation.version>1.1.1</activation.version>
+    <avro.version>1.8.2</avro.version>
+    <paranamer.version>2.8</paranamer.version>
+    <netty-all.version>4.1.47.Final</netty-all.version>
+    <zookeeper.version>3.4.14</zookeeper.version>
+    <fasterxml.jackson-core.version>2.10.0</fasterxml.jackson-core.version>
+    <fasterxml.jackson-databind.version>2.10.0</fasterxml.jackson-databind.version>
+    <slf4j.version>1.7.30</slf4j.version>
+    <log4j.version>1.2.17</log4j.version>
+    <!--END: Spark BOM-->
+
     <scopt.version>3.7.1</scopt.version>
-    <commons-math3.version>3.6.1</commons-math3.version>
     <scalatest.version>3.0.5</scalatest.version>
     <scalactic.version>3.0.5</scalactic.version>
-    <paranamer.version>2.8</paranamer.version>
     <jsr305.version>3.0.2</jsr305.version>
-    <guava.version>16.0.1</guava.version>
-    <commons-compress.version>1.8.1</commons-compress.version>
-    <commons-collections.version>3.2.2</commons-collections.version>
-    <commons-lang.version>2.6</commons-lang.version>
-    <snappy-java.version>1.1.7.3</snappy-java.version>
-    <fasterxml.jackson.version>2.6.7</fasterxml.jackson.version>
-    <fasterxml.jackson-databind.version>2.6.7.1</fasterxml.jackson-databind.version>
-    <log4j.version>1.2.17</log4j.version>
-    <slf4j.version>1.7.16</slf4j.version>
-    <avro.version>1.8.2</avro.version>
-    <netty.version>3.9.9.Final</netty.version>
-    <commons-codec.version>1.10</commons-codec.version>
-    <activation.version>1.1.1</activation.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+
+      <!--BEGIN: Spark BOM-->
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-core_${compiler.scala.compat.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-sql_${compiler.scala.compat.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-catalyst_${compiler.scala.compat.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-mllib-local_${compiler.scala.compat.version}</artifactId>
         <version>${spark.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.scalanlp</groupId>
-        <artifactId>breeze_${compiler.scala.compat.version}</artifactId>
-        <version>${breeze.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.scala-lang</groupId>
         <artifactId>scala-library</artifactId>
         <version>${compiler.scala.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.scala-lang</groupId>
         <artifactId>scala-reflect</artifactId>
         <version>${compiler.scala.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>com.github.scopt</groupId>
-        <artifactId>scopt_${compiler.scala.compat.version}</artifactId>
-        <version>${scopt.version}</version>
+        <groupId>org.scala-lang.modules</groupId>
+        <artifactId>scala-xml_${compiler.scala.compat.version}</artifactId>
+        <version>${scala-xml.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons-compress.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        <version>${commons-collections.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>${commons-lang.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>${commons-codec.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-math3</artifactId>
         <version>${commons-math3.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.thoughtworks.paranamer</groupId>
+        <artifactId>paranamer</artifactId>
+        <version>${paranamer.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>${netty-all.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>${zookeeper.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${fasterxml.jackson-core.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${fasterxml.jackson-databind.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.xerial.snappy</groupId>
+        <artifactId>snappy-java</artifactId>
+        <version>${snappy-java.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>${avro.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>javax.activation</groupId>
+        <artifactId>activation</artifactId>
+        <version>${activation.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>${log4j.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <!--END: Spark BOM-->
+
+      <dependency>
+        <groupId>com.github.scopt</groupId>
+        <artifactId>scopt_${compiler.scala.compat.version}</artifactId>
+        <version>${scopt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.scalatest</groupId>
@@ -121,89 +241,9 @@
 
       <!--BEGIN: Dependency convergence-->
       <dependency>
-        <groupId>com.thoughtworks.paranamer</groupId>
-        <artifactId>paranamer</artifactId>
-        <version>${paranamer.version}</version>
-      </dependency>
-      <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>jsr305</artifactId>
         <version>${jsr305.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
-        <version>${commons-compress.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-collections</groupId>
-        <artifactId>commons-collections</artifactId>
-        <version>${commons-collections.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-        <version>${commons-lang.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.xerial.snappy</groupId>
-        <artifactId>snappy-java</artifactId>
-        <version>${snappy-java.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${fasterxml.jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${fasterxml.jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>${slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>${log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.avro</groupId>
-        <artifactId>avro</artifactId>
-        <version>${avro.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>${commons-codec.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>activation</artifactId>
-        <version>${activation.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${fasterxml.jackson-databind.version}</version>
       </dependency>
       <!--END: Dependency convergence-->
 
@@ -224,7 +264,7 @@
             <lineSeparator>\n</lineSeparator>
             <encoding>${project.build.sourceEncoding}</encoding>
             <keepBlankLines>true</keepBlankLines>
-            <sortDependencies>scope</sortDependencies>
+            <sortDependencies>none</sortDependencies>
             <createBackupFile>false</createBackupFile>
             <nrOfIndentSpace>2</nrOfIndentSpace>
             <expandEmptyElements>false</expandEmptyElements>
