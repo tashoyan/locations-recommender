@@ -17,8 +17,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <resources.filter.delimiter>@{*}</resources.filter.delimiter>
+
     <compiler.java.version>11</compiler.java.version>
-    <compiler.scala.version>2.12.12</compiler.scala.version>
     <compiler.scala.compat.version>2.12</compiler.scala.compat.version>
 
     <sortpom-maven-plugin.version>2.12.0</sortpom-maven-plugin.version>
@@ -39,23 +39,26 @@
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
 
     <!--BEGIN: Spark BOM-->
-    <spark.version>3.0.1</spark.version>
+    <compiler.scala.version>2.12.10</compiler.scala.version>
+    <spark.version>3.1.2</spark.version>
     <scala-xml.version>1.2.0</scala-xml.version>
     <commons-collections.version>3.2.2</commons-collections.version>
-    <commons-compress.version>1.8.1</commons-compress.version>
+    <commons-compress.version>1.20</commons-compress.version>
     <commons-codec.version>1.10</commons-codec.version>
+    <commons-net.version>3.1</commons-net.version>
+    <commons-text.version>1.6</commons-text.version>
     <commons-lang.version>2.6</commons-lang.version>
-    <commons-lang3.version>3.9</commons-lang3.version>
+    <commons-lang3.version>3.10</commons-lang3.version>
     <commons-math3.version>3.4.1</commons-math3.version>
     <guava.version>14.0.1</guava.version>
-    <snappy-java.version>1.1.7.5</snappy-java.version>
+    <snappy-java.version>1.1.8.2</snappy-java.version>
     <activation.version>1.1.1</activation.version>
     <avro.version>1.8.2</avro.version>
     <paranamer.version>2.8</paranamer.version>
-    <netty-all.version>4.1.47.Final</netty-all.version>
+    <netty-all.version>4.1.51.Final</netty-all.version>
     <zookeeper.version>3.4.14</zookeeper.version>
-    <fasterxml.jackson-core.version>2.10.0</fasterxml.jackson-core.version>
-    <fasterxml.jackson-databind.version>2.10.0</fasterxml.jackson-databind.version>
+    <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
+    <curator.version>2.7.1</curator.version>
     <slf4j.version>1.7.30</slf4j.version>
     <log4j.version>1.2.17</log4j.version>
     <!--END: Spark BOM-->
@@ -75,6 +78,12 @@
         <artifactId>spark-core_${compiler.scala.compat.version}</artifactId>
         <version>${spark.version}</version>
         <scope>provided</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
@@ -143,6 +152,18 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
+        <groupId>commons-net</groupId>
+        <artifactId>commons-net</artifactId>
+        <version>${commons-net.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-text</artifactId>
+        <version>${commons-text.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-math3</artifactId>
         <version>${commons-math3.version}</version>
@@ -175,13 +196,37 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
-        <version>${fasterxml.jackson-core.version}</version>
+        <version>${fasterxml.jackson.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${fasterxml.jackson.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>${fasterxml.jackson-databind.version}</version>
+        <version>${fasterxml.jackson.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-recipes</artifactId>
+        <version>${curator.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-framework</artifactId>
+        <version>${curator.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-client</artifactId>
+        <version>${curator.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
