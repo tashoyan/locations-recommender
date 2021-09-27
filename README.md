@@ -2,7 +2,7 @@
 
 Recommender system that suggests people what places to visit.
 
-[![CI](https://github.com/tashoyan/retail-streaming-spark/actions/workflows/main.yml/badge.svg)](https://github.com/tashoyan/retail-streaming-spark/actions/workflows/main.yml)
+[![CI](https://github.com/tashoyan/visit-recommender/actions/workflows/main.yml/badge.svg)](https://github.com/tashoyan/visit-recommender/actions/workflows/main.yml)
 
 Two implementations are currently available:
 - stochastic graph (SG)
