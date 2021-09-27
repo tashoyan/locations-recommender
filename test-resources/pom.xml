@@ -18,18 +18,18 @@
     </dependency>
     <dependency>
       <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${compiler.scala.compat.version}</artifactId>
+      <artifactId>scalatest_${scala.binary.version}</artifactId>
       <!--Scope is compile, because this module is a utility to be used with scope test-->
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_${compiler.scala.compat.version}</artifactId>
+      <artifactId>spark-core_${scala.binary.version}</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-sql_${compiler.scala.compat.version}</artifactId>
+      <artifactId>spark-sql_${scala.binary.version}</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>

@@ -14,16 +14,16 @@
   <dependencies>
     <dependency>
       <groupId>com.github.scopt</groupId>
-      <artifactId>scopt_${compiler.scala.compat.version}</artifactId>
+      <artifactId>scopt_${scala.binary.version}</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-sql_${compiler.scala.compat.version}</artifactId>
+      <artifactId>spark-sql_${scala.binary.version}</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-catalyst_${compiler.scala.compat.version}</artifactId>
+      <artifactId>spark-catalyst_${scala.binary.version}</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
