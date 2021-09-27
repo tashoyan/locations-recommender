@@ -18,7 +18,7 @@
     </dependency>
     <dependency>
       <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${scala.binary.version}</artifactId>
+      <artifactId>scalatest-core_${scala.binary.version}</artifactId>
       <!--Scope is compile, because this module is a utility to be used with scope test-->
       <scope>compile</scope>
     </dependency>

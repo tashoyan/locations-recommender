@@ -1,9 +1,9 @@
 package com.github.tashoyan.recommender
 
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class LocationTest extends FunSuite {
+class LocationTest extends AnyFunSuite with Matchers {
 
   test("distance - same location") {
     val location1 = Location(55.6438965, 37.4433515)

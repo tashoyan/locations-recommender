@@ -2,11 +2,11 @@ package com.github.tashoyan.recommender.stochastic
 
 import com.github.tashoyan.recommender.test.SparkTestHarness
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.scalatest.Matchers._
-import org.scalatest.fixture
+import org.scalatest.funsuite.FixtureAnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 //TODO Tests on corner cases (zero epsilon, maxIterations)
-class StochasticRecommenderTest extends fixture.FunSuite with SparkTestHarness {
+class StochasticRecommenderTest extends FixtureAnyFunSuite with Matchers with SparkTestHarness {
 
   private val sample = Seq(
     (1L, 2L, 0.4),

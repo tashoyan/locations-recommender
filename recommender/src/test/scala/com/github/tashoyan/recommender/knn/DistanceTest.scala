@@ -1,11 +1,11 @@
 package com.github.tashoyan.recommender.knn
 
-import Distance._
+import com.github.tashoyan.recommender.knn.Distance._
 import org.apache.spark.ml.linalg.SparseVector
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class DistanceTest extends FunSuite {
+class DistanceTest extends AnyFunSuite with Matchers {
 
   test("vectorLength - all vector components are zero") {
     val vector = new SparseVector(2, Array.emptyIntArray, Array.emptyDoubleArray)

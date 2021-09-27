@@ -3,7 +3,7 @@ package com.github.tashoyan.recommender.test
 import com.github.tashoyan.recommender.test.SparkTestHarness._
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.sql.SparkSession
-import org.scalatest.{Outcome, fixture}
+import org.scalatest.{FixtureTestSuite, Outcome}
 
 /**
   * Harness trait for unit tests that require Spark.
@@ -58,7 +58,7 @@ import org.scalatest.{Outcome, fixture}
   * </ul>
   * Hence, a Spark Session with Hive support can be created only once and reused across all unit tests.
   */
-trait SparkTestHarness extends fixture.TestSuite with OnSparkCreate {
+trait SparkTestHarness extends FixtureTestSuite with OnSparkCreate {
 
   protected val defaultSparkSettings: Map[String, String] = Map(
     "spark.master" -> "local[4]",

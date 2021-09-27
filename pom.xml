@@ -65,8 +65,8 @@
     <!--END: Spark BOM-->
 
     <scopt.version>4.0.1</scopt.version>
-    <scalatest.version>3.0.5</scalatest.version>
-    <scalactic.version>3.0.5</scalactic.version>
+    <scalatest.version>3.2.10</scalatest.version>
+    <scalactic.version>3.2.10</scalactic.version>
   </properties>
 
   <dependencyManagement>
@@ -280,7 +280,27 @@
       </dependency>
       <dependency>
         <groupId>org.scalatest</groupId>
-        <artifactId>scalatest_${scala.binary.version}</artifactId>
+        <artifactId>scalatest-core_${scala.binary.version}</artifactId>
+        <version>${scalatest.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest-funsuite_${scala.binary.version}</artifactId>
+        <version>${scalatest.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest-matchers-core_${scala.binary.version}</artifactId>
+        <version>${scalatest.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest-shouldmatchers_${scala.binary.version}</artifactId>
+        <version>${scalatest.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest-compatible</artifactId>
         <version>${scalatest.version}</version>
       </dependency>
       <dependency>

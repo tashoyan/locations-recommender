@@ -1,10 +1,10 @@
 package com.github.tashoyan.recommender.deduplicator
 
-import Levenshtein._
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import com.github.tashoyan.recommender.deduplicator.Levenshtein._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class LevenshteinTest extends FunSuite {
+class LevenshteinTest extends AnyFunSuite with Matchers {
 
   test("lev - both non-empty strings") {
     val result = lev("sitting", "kitten")
