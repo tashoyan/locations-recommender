@@ -40,7 +40,7 @@
 
     <!--BEGIN: Spark BOM-->
     <compiler.scala.version>2.12.10</compiler.scala.version>
-    <spark.version>3.1.2</spark.version>
+    <spark.version>3.4.0</spark.version>
     <scala-xml.version>1.2.0</scala-xml.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-compress.version>1.20</commons-compress.version>
